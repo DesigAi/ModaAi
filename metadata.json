@@ -1,0 +1,6 @@
+{
+  "name": "ModAI Team",
+  "description": "AI fashion production workspace for apparel brands to generate photos and videos from clothing references",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
