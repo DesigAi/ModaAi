@@ -1,13 +1,12 @@
 import React from 'react';
 import { Camera, PackageOpen, LayoutGrid, HeartHandshake, Settings, LogOut, Sparkles, Coins, Users } from 'lucide-react';
+import { formatCredits } from '../utils/creditFormatter';
 
 interface SidebarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
-  photoCredits: number;
-  kitCredits: number;
-  reservedPhotoCredits: number;
-  reservedKitCredits: number;
+  creditBalance: number;
+  reservedCredits: number;
   userEmail: string;
   onLogout: () => void;
   onNewProductionClick: () => void;
@@ -16,10 +15,8 @@ interface SidebarProps {
 export default function Sidebar({
   currentTab,
   setCurrentTab,
-  photoCredits,
-  kitCredits,
-  reservedPhotoCredits,
-  reservedKitCredits,
+  creditBalance,
+  reservedCredits,
   userEmail,
   onLogout,
   onNewProductionClick
@@ -33,27 +30,18 @@ export default function Sidebar({
   ];
 
   return (
-    <div className="hidden md:flex w-[248px] bg-white border-r border-[#D7D7D7] flex-col h-full shrink-0">
+    <div className="hidden lg:flex w-[248px] bg-[#0F0F11] border-r border-[rgba(255,255,255,0.08)] flex-col h-full shrink-0">
       {/* Upper Area: Logo */}
-      <div className="p-5 border-b border-[#F1F1F1] flex items-center justify-between">
-        <div>
-          <span className="font-bold text-lg tracking-tight text-[#111111]">ModAI Team</span>
-          <span className="block text-[9px] font-mono leading-none tracking-widest text-[#888888] uppercase mt-0.5">
-            work cabinet
-          </span>
-        </div>
-        <span className="hidden md:inline bg-neutral-100 border border-[#D7D7D7] rounded px-1.5 py-0.5 text-[10px] font-mono text-neutral-500 uppercase">
-          PROT
-        </span>
+      <div className="p-5 border-b border-[rgba(255,255,255,0.08)] flex items-center">
+        <span className="font-display font-medium text-lg tracking-tight text-[#F8F8F8]">ModaAI</span>
       </div>
 
       {/* Primary Action Button */}
       <div className="p-4">
         <button
           onClick={onNewProductionClick}
-          className="w-full bg-[#111111] hover:bg-neutral-800 text-white font-medium text-sm py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98]"
+          className="w-full h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer"
         >
-          <Camera size={15} />
           <span>Новый продакшен</span>
         </button>
       </div>
@@ -67,9 +55,16 @@ export default function Sidebar({
             <button
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${isActive ? 'bg-[#111111] text-white' : 'text-[#555555] hover:bg-[#F1F1F1] hover:text-[#111111]'}`}
+              className={`relative w-full h-[40px] flex items-center gap-3 px-3 rounded-[6px] text-sm font-sans font-medium transition-colors text-left ${
+                isActive 
+                  ? 'bg-[rgba(201,163,95,0.12)] text-[#F8F8F8]' 
+                  : 'text-[#8B8B93] hover:bg-[#1D1D21] hover:text-[#F8F8F8]'
+              }`}
             >
-              <Icon size={16} />
+              {isActive && (
+                <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#C9A35F] rounded-r" />
+              )}
+              <Icon size={16} className={isActive ? 'text-[#C9A35F]' : 'text-[#8B8B93]'} />
               <span>{item.label}</span>
             </button>
           );
@@ -77,42 +72,32 @@ export default function Sidebar({
       </div>
 
       {/* Lower Area: Credit Balance Panel */}
-      <div className="p-4 border-t border-[#F1F1F1] bg-[#F6F6F6] m-3 rounded-lg space-y-3">
-        <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2">
+      <div className="p-4 border border-[rgba(255,255,255,0.08)] bg-[#16161A] m-3 rounded-[8px] space-y-3">
+        <div className="text-[10px] font-sans font-bold text-[#8B8B93] uppercase tracking-wider">
           Баланс аккаунта
         </div>
         
-        <div className="flex items-center justify-between text-xs font-medium">
-          <span className="text-[#555555]">Фото-кредиты:</span>
+        <div className="flex items-center justify-between text-xs font-sans font-medium">
+          <span className="text-[#B5B5BC]">Кредиты:</span>
           <div className="text-right">
-            <span className="text-[#111111] font-bold font-mono">{photoCredits} кр.</span>
-            {reservedPhotoCredits > 0 && (
-              <span className="block text-[10px] text-neutral-400">({reservedPhotoCredits} в резерве)</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-xs font-medium pt-1.5 border-t border-dashed border-[#D7D7D7]">
-          <span className="text-[#555555]">Комплекты:</span>
-          <div className="text-right">
-            <span className="text-[#111111] font-bold font-mono">{kitCredits} кр.</span>
-            {reservedKitCredits > 0 && (
-              <span className="block text-[10px] text-neutral-400">({reservedKitCredits} в резерве)</span>
+            <span className="text-[#F8F8F8] font-bold font-mono">{formatCredits(creditBalance)} кр.</span>
+            {reservedCredits > 0 && (
+              <span className="block text-[10px] text-[#8B8B93] font-normal">({formatCredits(reservedCredits)} в резерве)</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Profile & Logout section */}
-      <div className="p-4 border-t border-[#F1F1F1] bg-white flex items-center justify-between gap-2 overflow-hidden shrink-0">
+      <div className="p-4 border-t border-[rgba(255,255,255,0.08)] bg-[#0F0F11] flex items-center justify-between gap-2 overflow-hidden shrink-0">
         <div className="min-w-0 pr-1">
-          <span className="block text-xs font-semibold text-[#111111] truncate">{userEmail}</span>
-          <span className="block text-[10px] text-neutral-400 uppercase">Брендовый аккаунт</span>
+          <span className="block text-xs font-sans font-semibold text-[#F8F8F8] truncate">{userEmail}</span>
+          <span className="block text-[10px] text-[#8B8B93] uppercase font-sans">Брендовый аккаунт</span>
         </div>
         <button
           onClick={onLogout}
           title="Выйти из кабинета"
-          className="p-1.5 hover:bg-neutral-100 rounded text-neutral-500 hover:text-red-600 transition-colors shrink-0"
+          className="p-1.5 hover:bg-[#1D1D21] rounded-[6px] text-[#8B8B93] hover:text-[#C97878] transition-colors shrink-0"
         >
           <LogOut size={15} />
         </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ResultItem, ResultState, LedgerItem } from '../types';
-import { LayoutGrid, Download, Play, RefreshCw, AlertTriangle, MessageSquare, Info, Star, ShieldCheck, X, CheckSquare, Plus, Activity, ExternalLink } from 'lucide-react';
+import { LayoutGrid, Download, Play, RefreshCw, AlertTriangle, MessageSquare, Info, Star, ShieldCheck, X, CheckSquare, Plus, Activity, ExternalLink, Pencil, Check } from 'lucide-react';
 
 interface ResultsPageProps {
   results: ResultItem[];
@@ -23,6 +23,11 @@ export default function ResultsPage({
 }: ResultsPageProps) {
   const [filter, setFilter] = useState<'all' | 'photo' | 'kit' | 'processing' | 'failed'>('all');
   const [selectedResult, setSelectedResult] = useState<ResultItem | null>(null);
+  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState('');
+
+  const activeResult = selectedResult ? (results.find(r => r.id === selectedResult.id) || selectedResult) : null;
 
   const filteredResults = results.filter((res) => {
     if (res.isHidden) return false;
@@ -36,21 +41,21 @@ export default function ResultsPage({
   const getStatusBadge = (status: ResultState) => {
     switch (status) {
       case 'queued':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 border border-neutral-300 text-neutral-800">В очереди</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#8B8B93] font-mono">В очереди</span>;
       case 'processing':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 border border-neutral-300 text-neutral-800 animate-pulse">Генерация</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[#16161A] border border-[rgba(255,255,255,0.12)] text-[#C9A35F] animate-pulse font-mono">Генерация</span>;
       case 'quality_check':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 border border-amber-200 text-amber-800 font-mono">Проверка качества</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[#16161A] border border-[rgba(255,255,255,0.12)] text-[#78A98A] font-mono">Проверка качества</span>;
       case 'archive_preparing':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-50 border border-neutral-200 text-neutral-700">Подготовка ZIP</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] font-mono">Подготовка ZIP</span>;
       case 'ready':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-900 text-white font-semibold">Готово</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] font-mono font-bold">Готово</span>;
       case 'failed':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 border border-red-200 text-red-800">Ошибка</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[rgba(201,120,120,0.12)] border border-[rgba(201,120,120,0.2)] text-[#C97878] font-mono">Ошибка</span>;
       case 'regenerating':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 border border-amber-300 text-amber-900 animate-pulse">Перегенерация</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[#16161A] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] animate-pulse font-mono">Перегенерация</span>;
       case 'support_required':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 border border-red-300 text-red-900">Техподдержка</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-[rgba(201,120,120,0.12)] border border-[rgba(201,120,120,0.2)] text-[#C97878] font-mono font-bold">Техподдержка</span>;
     }
   };
 
@@ -81,20 +86,20 @@ export default function ResultsPage({
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 font-sans text-[#111111]">
+    <div className="p-6 max-w-6xl mx-auto space-y-6 font-sans text-[#F8F8F8]">
       
       {/* Header and Counters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#D7D7D7] pb-5 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-5 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">История результатов</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-2xl font-display font-medium tracking-tight text-[#F8F8F8]">История результатов</h1>
+          <p className="text-sm text-[#8B8B93] mt-1">
             Скачивайте готовые fashion-фото и 15-секундные вертикальные видео.
           </p>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex border-b border-[#D7D7D7] -mb-1 overflow-x-auto gap-4">
+      <div className="flex flex-wrap gap-2 md:gap-3 border-b border-[rgba(255,255,255,0.08)] pb-4">
         {[
           { id: 'all', label: 'Все' },
           { id: 'photo', label: '7 фото' },
@@ -105,7 +110,11 @@ export default function ResultsPage({
           <button
             key={tab.id}
             onClick={() => setFilter(tab.id as any)}
-            className={`pb-2 px-1 text-sm font-semibold border-b-2 transition-colors ${filter === tab.id ? 'border-[#111111] text-[#111111]' : 'border-transparent text-neutral-400 hover:text-neutral-600'}`}
+            className={`px-3.5 py-1.5 md:px-5 md:py-2 text-xs md:text-sm font-semibold rounded-[6px] transition-all cursor-pointer border ${
+              filter === tab.id
+                ? 'bg-[#C9A35F] border-[#C9A35F] text-[#050505] shadow-lg shadow-[rgba(201,163,95,0.15)] font-bold'
+                : 'bg-[#16161A] border-[rgba(255,255,255,0.08)] text-[#8B8B93] hover:text-[#F8F8F8] hover:border-[rgba(255,255,255,0.2)]'
+            }`}
           >
             {tab.label}
           </button>
@@ -113,13 +122,13 @@ export default function ResultsPage({
       </div>
 
       {/* Results Listing Grid */}
-      <div className="pt-6">
+      <div className="pt-2">
         {filteredResults.length === 0 ? (
-          <div className="bg-white border border-[#D7D7D7] rounded-lg p-12 text-center max-w-md mx-auto space-y-4">
-            <LayoutGrid className="text-neutral-400 mx-auto" size={32} />
+          <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-12 text-center max-w-md mx-auto space-y-4">
+            <LayoutGrid className="text-[#8B8B93] mx-auto animate-pulse" size={32} />
             <div>
-              <h3 className="text-sm font-bold">Результатов пока нет</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed mt-1">
+              <h3 className="text-sm font-semibold text-[#F8F8F8]">Результатов пока нет</h3>
+              <p className="text-xs text-[#8B8B93] leading-relaxed mt-1.5 font-sans">
                 Запустите новый продакшен или воспользуйтесь инструментами начисления кредитов в тарифах.
               </p>
             </div>
@@ -130,13 +139,13 @@ export default function ResultsPage({
               <div
                 key={res.id}
                 onClick={() => setSelectedResult(res)}
-                className="bg-white border border-[#D7D7D7] rounded-lg p-5 space-y-4 hover:border-black cursor-pointer select-none transition-all relative flex flex-col justify-between"
+                className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 space-y-4 hover:border-[#C9A35F] cursor-pointer select-none transition-all relative flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h3 className="text-sm font-bold leading-tight">{res.name}</h3>
-                      <span className="text-[10px] text-neutral-400 font-mono block mt-1">{res.date}</span>
+                      <h3 className="text-sm font-display font-medium leading-tight text-[#F8F8F8]">{res.name}</h3>
+                      <span className="text-[10px] text-[#8B8B93] font-mono block mt-1">{res.date}</span>
                     </div>
                     <div>
                       {getStatusBadge(res.status)}
@@ -144,29 +153,29 @@ export default function ResultsPage({
                   </div>
   
                   {/* Main representation preview based on state */}
-                  <div className="aspect-[4/3] bg-[#F1F1F1] border border-[#D7D7D7] rounded flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                  <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] flex flex-col items-center justify-center p-4 relative overflow-hidden">
                     
                     {res.status === 'ready' ? (
                       <div className="w-full h-full flex flex-col justify-between p-1">
                         <div className="grid grid-cols-4 gap-1 flex-1">
                           {[1, 2, 3, 4].map((num) => (
-                            <div key={num} className="bg-white border border-[#D7D7D7] rounded flex items-center justify-center text-[9px] font-mono font-bold text-neutral-500">
+                            <div key={num} className="bg-[#1A1A1D] border border-[rgba(255,255,255,0.05)] rounded-[4px] flex items-center justify-center text-[10px] font-mono font-bold text-[#8B8B93]">
                               F{num}
                             </div>
                           ))}
                         </div>
                         
                         {res.type === 'kit' && (
-                          <div className="bg-[#111111] text-white opacity-90 py-1.5 text-center text-[9px] font-mono rounded font-bold mt-2 uppercase flex items-center justify-center gap-1.5">
-                            <Play size={11} className="fill-current text-white" />
+                          <div className="bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] py-1.5 text-center text-[9px] font-mono rounded-[4px] font-bold mt-2 uppercase flex items-center justify-center gap-1.5">
+                            <Play size={11} className="fill-current text-[#C9A35F]" />
                             <span>▶ 15с Видео-комплект</span>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className="text-center space-y-2">
-                        <RefreshCw size={20} className={`text-neutral-400 mx-auto ${['processing', 'quality_check', 'archive_preparing', 'regenerating'].includes(res.status) ? 'animate-spin' : ''}`} />
-                        <span className="text-[10px] font-mono text-neutral-500 block uppercase tracking-wider">
+                        <RefreshCw size={20} className={`text-[#8B8B93] mx-auto ${['processing', 'quality_check', 'archive_preparing', 'regenerating'].includes(res.status) ? 'animate-spin' : ''}`} />
+                        <span className="text-[10px] font-mono text-[#8B8B93] block uppercase tracking-wider">
                           {res.status === 'queued' && 'Ожидание места в очереди...'}
                           {res.status === 'processing' && 'Маскирование и наложение...'}
                           {res.status === 'quality_check' && 'Проверка сопряжений кожи...'}
@@ -180,22 +189,22 @@ export default function ResultsPage({
                   </div>
   
                   {/* Parameters list metadata summary */}
-                  <div className="pt-2 border-t border-[#F1F1F1] grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] leading-tight text-[#555555]">
+                  <div className="pt-2 border-t border-[rgba(255,255,255,0.08)] grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] leading-tight text-[#B5B5BC] font-sans">
                     <div>
-                      <span className="text-neutral-400 block font-light">Образ:</span>
-                      <span className="font-semibold block text-[#111111] truncate">{res.lookName}</span>
+                      <span className="text-[#8B8B93] block font-light">Образ:</span>
+                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.lookName}</span>
                     </div>
                     <div>
-                      <span className="text-neutral-400 block font-light">Локация:</span>
-                      <span className="font-semibold block text-[#111111] truncate">{res.location}</span>
+                      <span className="text-[#8B8B93] block font-light">Локация:</span>
+                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.location}</span>
                     </div>
                     <div>
-                      <span className="text-neutral-400 block font-light">Модель:</span>
-                      <span className="font-semibold block text-[#111111] truncate">{res.modelName}</span>
+                      <span className="text-[#8B8B93] block font-light">Модель:</span>
+                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.modelName}</span>
                     </div>
                     <div>
-                      <span className="text-neutral-400 block font-light">Тип:</span>
-                      <span className="font-semibold block text-[#111111] uppercase font-mono text-[9px]">
+                      <span className="text-[#8B8B93] block font-light">Тип:</span>
+                      <span className="font-semibold block text-[#F8F8F8] uppercase font-mono text-[9px]">
                         {res.type === 'photo' ? '7 фото' : 'комплект'}
                       </span>
                     </div>
@@ -203,13 +212,13 @@ export default function ResultsPage({
                 </div>
   
                 {/* Card Actions Footer */}
-                <div className="pt-3 border-t border-[#F1F1F1] flex gap-2">
+                <div className="pt-3 border-t border-[rgba(255,255,255,0.08)] flex gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedResult(res);
                     }}
-                    className="flex-1 bg-neutral-100 hover:bg-neutral-200 border border-[#D7D7D7] text-[#111111] font-semibold text-xs py-2 px-3 rounded text-center"
+                    className="flex-1 bg-[#16161A] hover:bg-[#1D1D21] border border-[rgba(255,255,255,0.08)] text-[#F8F8F8] font-sans font-medium text-xs py-2 px-3 rounded-[6px] text-center transition-colors"
                   >
                     Открыть
                   </button>
@@ -221,7 +230,7 @@ export default function ResultsPage({
                         e.stopPropagation();
                         alert('Скачивание ZIP-архива с исходными 7 фотографиями (симуляция)');
                       }}
-                      className="p-2 border border-[#D7D7D7] bg-white hover:bg-neutral-50 rounded"
+                      className="p-2 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#C9A35F] rounded-[6px] transition-colors"
                       title="Скачать ZIP"
                     >
                       <Download size={13} />
@@ -238,59 +247,126 @@ export default function ResultsPage({
       {selectedResult && (
         <div 
           onClick={() => setSelectedResult(null)}
-          className="fixed inset-0 z-50 bg-black/60 flex justify-end font-sans cursor-pointer animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/80 flex justify-end font-sans cursor-pointer"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-2xl h-full flex flex-col justify-between overflow-y-auto border-l border-[#D7D7D7] p-6 shadow-xl relative animate-in slide-in-from-right duration-200 text-[#111111] cursor-default"
+            className="bg-[#0F0F11] w-full max-w-2xl h-full flex flex-col justify-between overflow-y-auto border-l border-[rgba(255,255,255,0.12)] p-6 shadow-2xl relative animate-in slide-in-from-right duration-200 text-[#F8F8F8] cursor-default"
           >
             <div className="space-y-6">
               
               {/* Header drawer controls */}
-              <div className="flex justify-between items-start border-b border-[#D7D7D7] pb-4">
-                <div>
-                  <h2 className="text-base font-bold">{selectedResult.name}</h2>
-                  <span className="text-[11px] font-mono text-neutral-400">ID операции: {selectedResult.id} • {selectedResult.date}</span>
+              <div className="flex justify-between items-start border-b border-[rgba(255,255,255,0.08)] pb-4">
+                <div className="flex-1 mr-4">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={tempName}
+                        onChange={(e) => setTempName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            if (activeResult && tempName.trim()) {
+                              onUpdateResultStatus(activeResult.id, activeResult.status, { name: tempName.trim() });
+                              setIsEditingName(false);
+                            }
+                          }
+                          if (e.key === 'Escape') setIsEditingName(false);
+                        }}
+                        className="bg-[#16161A] border border-[#C9A35F] rounded-[6px] px-3 py-1 text-sm text-[#F8F8F8] focus:outline-none focus:ring-1 focus:ring-[#C9A35F] w-full max-w-[400px] font-display font-medium"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          if (activeResult && tempName.trim()) {
+                            onUpdateResultStatus(activeResult.id, activeResult.status, { name: tempName.trim() });
+                            setIsEditingName(false);
+                          }
+                        }}
+                        className="p-1.5 bg-[#C9A35F] text-[#050505] hover:bg-[#D4B474] rounded-[4px] cursor-pointer inline-flex items-center justify-center"
+                        title="Сохранить"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        onClick={() => setIsEditingName(false)}
+                        className="p-1.5 bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:bg-[#1D1D21] rounded-[4px] text-[#8B8B93] hover:text-[#F8F8F8] cursor-pointer inline-flex items-center justify-center"
+                        title="Отмена"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 group mt-1">
+                      <h2 
+                        className="text-base font-display font-medium text-[#F8F8F8] cursor-pointer hover:text-[#C9A35F] transition-colors"
+                        onClick={() => {
+                          if (activeResult) {
+                            setTempName(activeResult.name);
+                            setIsEditingName(true);
+                          }
+                        }}
+                      >
+                        {activeResult ? activeResult.name : selectedResult.name}
+                      </h2>
+                      <button
+                        onClick={() => {
+                          if (activeResult) {
+                            setTempName(activeResult.name);
+                            setIsEditingName(true);
+                          }
+                        }}
+                        className="p-1 hover:bg-[#16161A] hover:text-[#C9A35F] rounded text-[#8B8B93] transition-all cursor-pointer inline-flex items-center justify-center"
+                        title="Редактировать название"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                    </div>
+                  )}
+                  <span className="text-[11px] font-mono text-[#8B8B93] block mt-1">ID операции: {selectedResult.id} • {selectedResult.date}</span>
                 </div>
                 <button
-                  onClick={() => setSelectedResult(null)}
-                  className="p-1 hover:bg-neutral-100 rounded text-neutral-500"
+                  onClick={() => {
+                    setSelectedResult(null);
+                    setIsEditingName(false);
+                  }}
+                  className="p-1.5 hover:bg-[#1D1D21] rounded-[6px] text-[#8B8B93] transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Status Info cards */}
-              <div className="p-4 rounded-lg bg-[#F6F6F6] border border-[#D7D7D7] space-y-3">
+              <div className="p-4 rounded-[8px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">Текущее состояние</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#8B8B93]">Текущее состояние</span>
                   {getStatusBadge(selectedResult.status)}
                 </div>
 
                 {/* Progress Timelines for Photos vs Kits */}
                 <div className="space-y-3">
-                  <span className="block text-[10px] font-mono text-neutral-500 uppercase">Лог технологических этапов</span>
+                  <span className="block text-[10px] font-mono text-[#8B8B93] uppercase tracking-wider">Лог технологических этапов</span>
                   
                   {selectedResult.type === 'photo' ? (
-                    <div className="grid grid-cols-7 gap-1 font-mono text-[9px] text-center text-neutral-400 leading-none">
-                      <div className={`p-1 border rounded ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>В очереди</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Подготовка</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Образ</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold animate-pulse' : 'bg-neutral-50 border-neutral-200'}`}>Ген 7 ф.</div>
-                      <div className={`p-1 border rounded ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Контроль</div>
-                      <div className={`p-1 border rounded ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>ZIP</div>
-                      <div className={`p-1 border rounded ${selectedResult.status === 'ready' ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Готово</div>
+                    <div className="grid grid-cols-7 gap-1 font-mono text-[9px] text-center text-[#8B8B93] leading-none">
+                      <div className={`p-1.5 border rounded-[4px] ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>В очереди</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Подготовка</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Образ</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold animate-pulse' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Ген 7 ф.</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Контроль</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>ZIP</div>
+                      <div className={`p-1.5 border rounded-[4px] ${selectedResult.status === 'ready' ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Готово</div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-8 gap-1 font-mono text-[8px] text-center text-neutral-400 leading-none">
-                      <div className={`p-1 border rounded ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>В очереди</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Подготовка</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Образ</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Ген 7 ф.</div>
-                      <div className={`p-1 border rounded ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Видео 15с</div>
-                      <div className={`p-1 border rounded ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Контроль</div>
-                      <div className={`p-1 border rounded ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Сборка ZIP</div>
-                      <div className={`p-1 border rounded ${selectedResult.status === 'ready' ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-neutral-50 border-neutral-200'}`}>Готово</div>
+                    <div className="grid grid-cols-8 gap-1 font-mono text-[8px] text-center text-[#8B8B93] leading-none font-sans">
+                      <div className={`p-1.5 border rounded-[4px] ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>В очереди</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Подготовка</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Образ</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Ген 7 ф.</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Видео 15с</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Контроль</div>
+                      <div className={`p-1.5 border rounded-[4px] ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Сборка ZIP</div>
+                      <div className={`p-1.5 border rounded-[4px] ${selectedResult.status === 'ready' ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Готово</div>
                     </div>
                   )}
                 </div>
@@ -298,36 +374,36 @@ export default function ResultsPage({
 
               {/* Main Content Layout Depending on Status */}
               <div className="space-y-4">
-                <span className="block text-xs font-bold text-neutral-500 uppercase">Обзор контента продакшена</span>
+                <span className="block text-xs font-bold text-[#8B8B93] uppercase tracking-wider">Обзор контента продакшена</span>
 
                 {selectedResult.status === 'ready' ? (
-                  <div className="space-y-4 bg-neutral-50 border border-[#D7D7D7] p-4 rounded-lg">
+                  <div className="space-y-4 bg-[#16161A] border border-[rgba(255,255,255,0.08)] p-4 rounded-[8px]">
                     {/* Skeleton photos lists */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2 pb-2">
                       {selectedResult.images.map((caption, index) => (
-                        <div key={index} className="aspect-[4/5] bg-white border border-[#D3D3D3] rounded p-2 flex flex-col justify-between items-center relative overflow-hidden">
-                          <CheckSquare className="text-neutral-500 self-end" size={13} />
-                          <span className="text-[9px] text-[#555555] font-semibold text-center leading-tight py-1 font-mono">{caption}</span>
-                          <span className="text-[9px] text-neutral-400 font-mono tracking-wide uppercase">Кадр {index + 1}</span>
+                        <div key={index} className="aspect-[4/5] bg-[#1A1A1D] border border-[rgba(255,255,255,0.05)] rounded-[6px] p-2 flex flex-col justify-between items-center relative overflow-hidden">
+                          <CheckSquare className="text-[#C9A35F] self-end" size={13} />
+                          <span className="text-[9px] text-[#B5B5BC] font-medium text-center leading-tight py-1 font-mono">{caption}</span>
+                          <span className="text-[9px] text-[#8B8B93] font-mono tracking-wide uppercase">Кадр {index + 1}</span>
                         </div>
                       ))}
                     </div>
 
                     {selectedResult.type === 'kit' && selectedResult.videoUrl && (
-                      <div className="bg-neutral-950 p-4 rounded-lg text-white space-y-3">
+                      <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] p-4 rounded-[8px] text-white space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-mono tracking-widest text-[#888888] uppercase">15-секундный видео-шаблон (9:16)</span>
-                          <span className="text-[10px] bg-[#A8A8A8] text-neutral-900 font-bold px-2 py-0.5 rounded uppercase">MP4</span>
+                          <span className="text-xs font-mono tracking-widest text-[#8B8B93] uppercase">15-секундный видео-шаблон (9:16)</span>
+                          <span className="text-[10px] bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] font-bold px-2 py-0.5 rounded uppercase">MP4</span>
                         </div>
-                        <div className="border border-neutral-800 rounded p-6 flex flex-col items-center justify-center text-center space-y-2 bg-neutral-900/60">
-                          <Play size={20} className="text-white fill-current" />
-                          <span className="text-xs font-semibold">{selectedResult.videoUrl}</span>
-                          <span className="text-[10px] text-neutral-400 font-mono">Применены настройки: {selectedResult.location} • Spain Lights Direction</span>
+                        <div className="border border-[rgba(255,255,255,0.05)] rounded-[6px] p-6 flex flex-col items-center justify-center text-center space-y-2 bg-[#16161A]">
+                          <Play size={20} className="text-[#C9A35F] fill-current" />
+                          <span className="text-xs font-semibold text-[#F8F8F8]">{selectedResult.videoUrl}</span>
+                          <span className="text-[10px] text-[#8B8B93] font-mono">Применены настройки: {selectedResult.location} • Spain Lights Direction</span>
                         </div>
                         <div className="flex justify-end gap-1.5 pt-2">
                           <button
                             onClick={() => alert('Скачивание 15-секундного видеофайла')}
-                            className="bg-white text-neutral-900 hover:bg-neutral-100 font-bold text-xs py-1.5 px-3 rounded flex items-center gap-1"
+                            className="bg-[#C9A35F] hover:bg-[#D4B474] text-[#050505] font-semibold text-xs py-1.5 px-3 rounded-[6px]"
                           >
                             Скачать со звуком
                           </button>
@@ -335,22 +411,22 @@ export default function ResultsPage({
                       </div>
                     )}
 
-                    <div className="pt-2 border-t border-[#D7D7D7] flex flex-wrap justify-between items-center gap-2">
-                      <span className="text-xs text-neutral-500">Все 7 изображений прошли автоматическую проверку ModAI Quality Check</span>
+                    <div className="pt-3 border-t border-[rgba(255,255,255,0.08)] flex flex-wrap justify-between items-center gap-2">
+                      <span className="text-xs text-[#8B8B93]">Все 7 изображений прошли автоматическую проверку ModAI Quality Check</span>
                       <button
                         onClick={() => alert('Скачивание архива ZIP (симуляция)')}
-                        className="bg-[#111111] hover:bg-neutral-800 text-white font-medium text-xs py-2 px-4 rounded flex items-center gap-1"
+                        className="h-[32px] bg-[#C9A35F] hover:bg-[#D4B474] text-[#050505] font-medium text-xs px-4 rounded-[6px] flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         <Download size={14} />
-                        Скачать все фото (ZIP)
+                        <span>Скачать все фото (ZIP)</span>
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="border border-dashed border-[#A8A8A8] rounded-lg p-10 flex flex-col items-center justify-center text-center space-y-3 text-neutral-500 bg-neutral-50">
-                    <RefreshCw size={24} className={`animate-spin text-neutral-400`} />
-                    <h4 className="text-sm font-bold text-neutral-900">Идет подготовка AI материалов</h4>
-                    <p className="text-xs text-neutral-400 max-w-sm leading-relaxed">
+                  <div className="border border-dashed border-[rgba(255,255,255,0.12)] bg-[#16161A] rounded-[8px] p-10 flex flex-col items-center justify-center text-center space-y-3 text-[#8B8B93]">
+                    <RefreshCw size={24} className="animate-spin text-[#C9A35F]" />
+                    <h4 className="text-sm font-semibold text-[#F8F8F8]">Идет подготовка AI материалов</h4>
+                    <p className="text-xs text-[#8B8B93] max-w-sm leading-relaxed">
                       Как только роботы закончат рендеринг складок одежды и совмещение конечностей, здесь появится готовый пак.
                     </p>
                   </div>
@@ -358,33 +434,33 @@ export default function ResultsPage({
               </div>
 
               {/* Parameters List Detail */}
-              <div className="space-y-3 bg-[#F6F6F6] border border-[#D7D7D7] rounded-lg p-5 text-xs">
-                <span className="block font-bold text-neutral-500 uppercase tracking-widest text-[9px]">Параметры съемки</span>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 text-xs">
+                <span className="block font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">Параметры съемки</span>
+                <div className="grid grid-cols-2 gap-4 text-[#B5B5BC] font-sans">
                   <div>
-                    <span className="text-neutral-400 font-light block">Образ:</span>
-                    <span className="font-semibold block">{selectedResult.lookName}</span>
+                    <span className="text-[#8B8B93] font-light block">Образ:</span>
+                    <span className="font-semibold block text-[#F8F8F8]">{selectedResult.lookName}</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 font-light block">Локация / Настройка:</span>
-                    <span className="font-semibold block">{selectedResult.location}</span>
+                    <span className="text-[#8B8B93] font-light block">Локация / Настройка:</span>
+                    <span className="font-semibold block text-[#F8F8F8]">{selectedResult.location}</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 font-light block">Направление поз:</span>
-                    <span className="font-semibold block">{selectedResult.posePack}</span>
+                    <span className="text-[#8B8B93] font-light block">Направление поз:</span>
+                    <span className="font-semibold block text-[#F8F8F8]">{selectedResult.posePack}</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 font-light block">Связанная модель:</span>
-                    <span className="font-semibold block">{selectedResult.modelName}</span>
+                    <span className="text-[#8B8B93] font-light block">Связанная модель:</span>
+                    <span className="font-semibold block text-[#F8F8F8]">{selectedResult.modelName}</span>
                   </div>
                 </div>
               </div>
 
               {/* SUPPORT REQUIRED NOTICES BLOCK */}
               {selectedResult.status === 'support_required' && (
-                <div className="bg-red-50 border border-red-300 rounded-lg p-4 space-y-3 text-xs">
-                  <div className="flex gap-2 text-red-800 font-medium">
-                    <AlertTriangle size={18} className="shrink-0 text-red-600" />
+                <div className="bg-[rgba(201,120,120,0.12)] border border-[rgba(201,120,120,0.2)] rounded-[8px] p-4 space-y-3 text-xs text-[#B5B5BC]">
+                  <div className="flex gap-2.5 text-[#C97878] font-medium">
+                    <AlertTriangle size={18} className="shrink-0 text-[#C97878]" />
                     <div>
                       <p className="font-bold">Генерация перенаправлена инженерам поддержки</p>
                       <p className="text-[11px] leading-relaxed mt-0.5">
@@ -393,8 +469,8 @@ export default function ResultsPage({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-red-200">
-                    <span className="block text-[10px] font-bold text-red-900 uppercase mb-2">
+                  <div className="pt-2 border-t border-[rgba(201,120,120,0.15)]">
+                    <span className="block text-[10px] font-bold text-[#C97878] uppercase mb-2">
                       Решение поддержки (Инструменты тестов):
                     </span>
                     <div className="flex flex-wrap gap-2 text-[10px]">
@@ -404,7 +480,7 @@ export default function ResultsPage({
                           alert('Резерв отменен: Кредит возвращен на баланс аккаунта!');
                           setSelectedResult(null);
                         }}
-                        className="bg-white border border-red-200 hover:bg-neutral-100 text-red-700 px-2.5 py-1.5 rounded"
+                        className="bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:border-[#C97878] text-[#C97878] px-2.5 py-1.5 rounded-[4px] cursor-pointer transition-colors"
                       >
                         Вернуть кредит на баланс
                       </button>
@@ -414,7 +490,7 @@ export default function ResultsPage({
                           alert('Ручное исправление завершено: Результат помечен как готовый!');
                           setSelectedResult(null);
                         }}
-                        className="bg-neutral-900 text-white hover:bg-neutral-800 px-2.5 py-1.5 rounded"
+                        className="bg-[#C9A35F] hover:bg-[#D4B474] text-[#050505] px-2.5 py-1.5 rounded-[4px] cursor-pointer transition-colors"
                       >
                         Подтвердить ручное исправление
                       </button>
@@ -424,38 +500,38 @@ export default function ResultsPage({
               )}
 
               {/* Fast Track Simulator Options at the very bottom */}
-              <div className="bg-[#FFFBEB] p-4 border border-amber-300 rounded-lg space-y-3">
-                <span className="block text-[11px] font-bold text-amber-900 uppercase">
+              <div className="bg-[rgba(201,163,95,0.08)] p-4 border border-[rgba(201,163,95,0.2)] rounded-[8px] space-y-3">
+                <span className="block text-[10px] font-bold text-[#C9A35F] uppercase tracking-wider">
                   Симулировать действия процессинга (Sandbox)
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     onClick={() => simulateStatusChange(selectedResult.id, 'ready')}
-                    className="text-[10px] bg-white border border-amber-400 hover:bg-neutral-50 p-1 rounded font-mono"
+                    className="text-[10px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:border-[#C9A35F] p-1.5 rounded-[4px] font-mono cursor-pointer transition-colors"
                   >
                     Готово (Ready)
                   </button>
                   <button
                     onClick={() => simulateStatusChange(selectedResult.id, 'failed')}
-                    className="text-[10px] bg-white border border-amber-400 hover:bg-neutral-50 p-1 rounded font-mono"
+                    className="text-[10px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:border-[#C9A35F] p-1.5 rounded-[4px] font-mono cursor-pointer transition-colors"
                   >
                     Ошибка (Failed)
                   </button>
                   <button
                     onClick={() => simulateStatusChange(selectedResult.id, 'quality_check')}
-                    className="text-[10px] bg-white border border-amber-400 hover:bg-neutral-50 p-1 rounded font-mono"
+                    className="text-[10px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:border-[#C9A35F] p-1.5 rounded-[4px] font-mono cursor-pointer transition-colors"
                   >
                     Проверка качества
                   </button>
                   <button
                     onClick={() => simulateStatusChange(selectedResult.id, 'regenerating')}
-                    className="text-[10px] bg-white border border-amber-400 hover:bg-neutral-50 p-1 rounded font-mono"
+                    className="text-[10px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:border-[#C9A35F] p-1.5 rounded-[4px] font-mono cursor-pointer transition-colors"
                   >
                     Перегенерация
                   </button>
                   <button
                     onClick={() => simulateStatusChange(selectedResult.id, 'support_required')}
-                    className="text-[10px] bg-white border border-amber-400 hover:bg-neutral-50 p-1 rounded font-mono"
+                    className="text-[10px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:border-[#C97878] p-1.5 rounded-[4px] font-mono cursor-pointer transition-colors"
                   >
                     Статус поддержки
                   </button>
@@ -464,21 +540,21 @@ export default function ResultsPage({
 
             </div>
 
-            <div className="border-t border-[#D7D7D7] pt-4 mt-6 flex justify-between">
+            <div className="border-t border-[rgba(255,255,255,0.08)] pt-4 mt-6 flex justify-between items-center bg-[#0F0F11]">
               {selectedResult.status === 'ready' && (
                 <button
                   onClick={() => {
                     onStartWithLookId(selectedResult.lookId, selectedResult);
                     setSelectedResult(null);
                   }}
-                  className="bg-[#111111] hover:bg-neutral-800 text-white font-medium text-xs py-2 px-4 rounded"
+                  className="h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm px-5 rounded-[6px] transition-all select-none active:translate-y-[1px] cursor-pointer"
                 >
-                  Создать еще из этого образа →
+                  Создать еще из этого образа
                 </button>
               )}
               <button
                 onClick={() => setSelectedResult(null)}
-                className="border border-[#D7D7D7] hover:bg-neutral-100 text-xs py-2 px-4 rounded ml-auto"
+                className="h-[36px] border border-[rgba(255,255,255,0.12)] hover:bg-[#16161A] text-[#F8F8F8] text-xs px-4 rounded-[6px] ml-auto transition-colors cursor-pointer"
               >
                 Вернуться к результатам
               </button>

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Model, WardrobeKit, WardrobeItem, ControlledLocationSettings, ActiveProductionFlow, Look } from '../types';
 import { LOCATION_CATEGORIES, POSE_PACKS, VIDEO_TEMPLATES } from '../mockData';
 import { Sparkles, Users, Shirt, MapPin, CheckCircle, Info, RefreshCw, Trash2, Sliders, AlertTriangle, Play, ChevronRight, Check, UploadCloud } from 'lucide-react';
+import { formatCredits, formatCreditsWithLabel } from '../utils/creditFormatter';
 
 interface CreatePageProps {
-  photoCredits: number;
-  kitCredits: number;
+  creditBalance: number;
   savedModels: Model[];
   wardrobeItems: WardrobeItem[];
   wardrobeKits: WardrobeKit[];
@@ -22,8 +22,7 @@ interface CreatePageProps {
 }
 
 export default function CreatePage({
-  photoCredits,
-  kitCredits,
+  creditBalance,
   savedModels,
   wardrobeItems,
   wardrobeKits,
@@ -230,26 +229,26 @@ export default function CreatePage({
   if (!activeFlow) {
     // Zero-state choice of flow
     return (
-      <div className="p-6 max-w-4xl mx-auto space-y-8 font-sans text-[#111111]">
+      <div className="p-6 max-w-4xl mx-auto space-y-8 font-sans text-[#F8F8F8]">
         <div className="text-center py-10 max-w-2xl mx-auto space-y-3">
-          <h1 className="text-2xl font-bold tracking-tight">Создать AI-продакшен</h1>
-          <p className="text-sm text-neutral-500">
+          <h1 className="text-2xl font-display font-medium tracking-tight text-[#F8F8F8]">Создать AI-продакшен</h1>
+          <p className="text-sm text-[#8B8B93]">
             Для запуска съемок выберите подходящий формат в зависимости от доступных у вас кредитов.
           </p>
         </div>
 
-        {photoCredits === 0 && kitCredits === 0 ? (
-          <div className="bg-white border-2 border-[#D7D7D7] rounded-lg p-8 text-center max-w-md mx-auto space-y-4">
-            <h3 className="text-sm font-bold">У вас пока нет активных кредитов.</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed">
+        {creditBalance < 0.5 ? (
+          <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-8 text-center max-w-md mx-auto space-y-4">
+            <h3 className="text-sm font-semibold text-[#F8F8F8]">У вас пока нет активных кредитов.</h3>
+            <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
               Посетите раздел тарифов, чтобы выбрать подходящий съемочный пакет и провести оплату.
             </p>
             <div className="pt-2">
               <button
                 onClick={onNavigateToTariffs}
-                className="bg-[#111111] hover:bg-neutral-800 text-white font-medium text-xs py-2 px-4 rounded"
+                className="h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm px-5 rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer"
               >
-                Посмотреть тарифы →
+                Посмотреть тарифы
               </button>
             </div>
           </div>
@@ -257,54 +256,54 @@ export default function CreatePage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* Choose 7 photos */}
-            <div className="bg-white border-2 border-[#D7D7D7] hover:border-black rounded-lg p-6 space-y-6 flex flex-col justify-between">
-              <div className="space-y-3">
+            <div className="bg-[#0F0F11] border-2 border-[rgba(255,255,255,0.08)] hover:border-[#C9A35F] rounded-[12px] p-6 space-y-6 flex flex-col justify-between transition-all">
+              <div className="space-y-3.5">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-md font-bold">Пакет на 7 фотографий</h3>
-                  <span className="text-[10px] font-mono bg-amber-50 text-amber-800 py-0.5 px-2 rounded font-bold border border-amber-200">
-                    1 фото-кредит
+                  <h3 className="text-md font-display font-medium text-[#F8F8F8]">Пакет на 7 фотографий</h3>
+                  <span className="text-[10px] font-mono bg-[rgba(201,163,95,0.12)] text-[#C9A35F] py-1 px-2.5 rounded-[4px] font-bold border border-[rgba(201,163,95,0.2)]">
+                    0,5 кредита
                   </span>
                 </div>
-                <p className="text-xs text-[#555555] leading-relaxed">
+                <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
                   Полноценная фотосессия для одного SKU на выбранной модели. Вы получаете 7 разноплановых кадров с высокой детализацией. Видео не входит.
                 </p>
-                <div className="bg-[#F6F6F6] p-3 rounded text-xs space-y-1 text-[#555555]">
-                  <div>• Результат: <strong>7 готовых кадров в ZIP</strong></div>
-                  <div>• Локация и свет: <strong>Контролируемые</strong></div>
+                <div className="bg-[#16161A] p-3.5 border border-[rgba(255,255,255,0.05)] rounded-[8px] text-xs space-y-1.5 text-[#B5B5BC] font-sans">
+                  <div>• Результат: <strong className="text-[#F8F8F8]">7 готовых кадров в ZIP</strong></div>
+                  <div>• Локация и свет: <strong className="text-[#F8F8F8]">Контролируемые</strong></div>
                 </div>
               </div>
               <button
-                disabled={photoCredits === 0}
+                disabled={creditBalance < 0.5}
                 onClick={() => onStartFlow('photo')}
-                className="w-full bg-[#111111] disabled:bg-neutral-200 disabled:text-neutral-500 hover:bg-neutral-800 text-white text-xs font-bold py-2.5 rounded transition-all mt-4"
+                className="w-full h-[40px] bg-[#C9A35F] disabled:bg-[#1A1A1D] disabled:text-[#8B8B93] disabled:border-transparent hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all mt-4 select-none active:translate-y-[1px] cursor-pointer"
               >
-                {photoCredits > 0 ? 'Запустить съемку (7 фото) →' : 'Недостаточно фото-кредитов'}
+                {creditBalance >= 0.5 ? 'Запустить съемку (7 фото)' : 'Недостаточно кредитов'}
               </button>
             </div>
 
             {/* Choose kit (Photos + Video) */}
-            <div className="bg-white border-2 border-[#D7D7D7] hover:border-black rounded-lg p-6 space-y-6 flex flex-col justify-between">
-              <div className="space-y-3">
+            <div className="bg-[#0F0F11] border-2 border-[rgba(255,255,255,0.08)] hover:border-[#C9A35F] rounded-[12px] p-6 space-y-6 flex flex-col justify-between transition-all">
+              <div className="space-y-3.5">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-md font-bold">Production-комплект</h3>
-                  <span className="text-[10px] font-mono bg-indigo-50 text-indigo-800 py-0.5 px-2 rounded font-bold border border-indigo-200">
-                    1 комплект-кредит
+                  <h3 className="text-md font-display font-medium text-[#F8F8F8]">Production-комплект</h3>
+                  <span className="text-[10px] font-mono bg-[rgba(255,255,255,0.08)] text-[#F8F8F8] py-1 px-2.5 rounded-[4px] font-bold border border-[rgba(255,255,255,0.12)]">
+                    1 кредит
                   </span>
                 </div>
-                <p className="text-xs text-[#555555] leading-relaxed">
+                <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
                   Полная фотосессия (7 снимков) плюс одно 15-секундное готовое вертикальное промо-видео (9:16). Идеально закрывает карточки маркетплейсов и социальные медиа за один клик.
                 </p>
-                <div className="bg-[#F6F6F6] p-3 rounded text-xs space-y-1 text-[#555555]">
-                  <div>• Результат: <strong>7 кадров + 1 видеоролик</strong></div>
-                  <div>• Шаблон видео: <strong>Интегрированный</strong></div>
+                <div className="bg-[#16161A] p-3.5 border border-[rgba(255,255,255,0.05)] rounded-[8px] text-xs space-y-1.5 text-[#B5B5BC] font-sans">
+                  <div>• Результат: <strong className="text-[#F8F8F8]">7 кадров + 1 видеоролик</strong></div>
+                  <div>• Шаблон видео: <strong className="text-[#F8F8F8]">Интегрированный</strong></div>
                 </div>
               </div>
               <button
-                disabled={kitCredits === 0}
+                disabled={creditBalance < 1}
                 onClick={() => onStartFlow('kit')}
-                className="w-full bg-[#111111] disabled:bg-neutral-200 disabled:text-neutral-500 hover:bg-neutral-800 text-white text-xs font-bold py-2.5 rounded transition-all mt-4"
+                className="w-full h-[40px] bg-[#C9A35F] disabled:bg-[#1A1A1D] disabled:text-[#8B8B93] disabled:border-transparent hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all mt-4 select-none active:translate-y-[1px] cursor-pointer"
               >
-                {kitCredits > 0 ? 'Запустить комплект (Фото + Видео) →' : 'Недостаточно комплект-кредитов'}
+                {creditBalance >= 1 ? 'Запустить комплект (Фото + Видео)' : 'Недостаточно кредитов'}
               </button>
             </div>
 
@@ -329,19 +328,19 @@ export default function CreatePage({
   const currentStepIndex = activeFlow.currentStep;
 
   return (
-    <div className="h-full flex flex-col md:flex-row font-sans text-[#111111]">
+    <div className="h-full flex flex-col md:flex-row font-sans text-[#F8F8F8] select-none">
       
       {/* 2. Middle Editor Content Area */}
-      <div className="flex-1 p-6 bg-white overflow-y-auto min-w-0 border-r border-[#F1F1F1]">
+      <div className="flex-1 p-6 pb-28 md:pb-24 bg-[#050505] overflow-y-auto min-w-0 border-r border-[rgba(255,255,255,0.08)]">
         
         {/* Top Stepper Area (Above main headers) */}
-        <div className="mb-6 pb-5 border-b border-[#F1F1F1] space-y-4">
+        <div className="mb-6 pb-5 border-b border-[rgba(255,255,255,0.08)] space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {onCancelFlow && (
               <button
                 onClick={onCancelFlow}
                 id="back_to_formats_btn"
-                className="flex items-center gap-2 text-xs text-[#111111] font-bold transition-all py-1.5 px-3.5 rounded-md border border-[#D7D7D7] hover:border-black bg-white select-none whitespace-nowrap self-start"
+                className="flex items-center gap-2 text-xs text-[#F8F8F8] font-bold transition-all py-1.5 px-3.5 rounded-[6px] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] bg-[#16161A] select-none whitespace-nowrap self-start cursor-pointer"
               >
                 <span>← Назад к выбору</span>
               </button>
@@ -357,15 +356,15 @@ export default function CreatePage({
                     key={step.label}
                     disabled={idx > currentStepIndex && getMissingItemsList().length > 0}
                     onClick={() => onStepChange(idx)}
-                    className={`flex items-center gap-2 text-left text-xs font-bold py-1.5 px-3 rounded-lg border select-none transition-all ${
+                    className={`flex items-center gap-2 text-left text-xs font-semibold py-1.5 px-3 rounded-[6px] border select-none transition-all cursor-pointer ${
                       isActive 
-                        ? 'bg-[#111111] text-white border-black' 
+                        ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F]' 
                         : isCompleted 
-                          ? 'text-neutral-700 bg-white border-[#D7D7D7] hover:border-black' 
-                          : 'text-neutral-300 border-[#EFEFEF] pointer-events-none'
+                          ? 'text-[#F8F8F8] bg-[#16161A] border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F]' 
+                          : 'text-[#8B8B93] border-[rgba(255,255,255,0.05)] pointer-events-none'
                     }`}
                   >
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center font-mono text-[9px] leading-none ${isActive ? 'bg-white text-black' : isCompleted ? 'bg-neutral-200 text-neutral-700' : 'bg-neutral-100 text-neutral-300'}`}>
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center font-mono text-[9px] leading-none ${isActive ? 'bg-[#050505] text-[#C9A35F]' : isCompleted ? 'bg-[rgba(201,163,95,0.12)] text-[#C9A35F]' : 'bg-[#1A1A1D] text-[#8B8B93]'}`}>
                       {isCompleted ? '✓' : idx + 1}
                     </div>
                     <span className="whitespace-nowrap">{step.label}</span>
@@ -380,23 +379,23 @@ export default function CreatePage({
         {currentStepIndex === 0 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-bold">Шаг 1: Выберите AI-модель</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 1: Выберите AI-модель</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Используйте сохраненных манекенщиц из вашей базы или сгенерируйте новые параметры лица и расы.
               </p>
             </div>
 
             {/* Tab switchers */}
-            <div className="flex gap-2 bg-[#F1F1F1] rounded-lg p-1 text-xs max-w-xs">
+            <div className="flex gap-1 bg-[#16161A] rounded-[8px] p-1 text-xs max-w-xs">
               <button
                 onClick={() => setModelTab('saved')}
-                className={`flex-1 py-1 px-3 rounded transition-all ${modelTab === 'saved' ? 'bg-white font-bold' : ''}`}
+                className={`flex-1 py-1.5 px-3 rounded-[6px] transition-all cursor-pointer ${modelTab === 'saved' ? 'bg-[#1D1D21] text-[#C9A35F] font-semibold' : 'text-[#8B8B93]'}`}
               >
                 Сохраненные модели
               </button>
               <button
                 onClick={() => setModelTab('create')}
-                className={`flex-1 py-1 px-3 rounded transition-all ${modelTab === 'create' ? 'bg-white font-bold' : ''}`}
+                className={`flex-1 py-1.5 px-3 rounded-[6px] transition-all cursor-pointer ${modelTab === 'create' ? 'bg-[#1D1D21] text-[#C9A35F] font-semibold' : 'text-[#8B8B93]'}`}
               >
                 Сгенерировать новую
               </button>
@@ -408,21 +407,21 @@ export default function CreatePage({
                   {savedModels.map((model) => (
                     <div
                       key={model.id}
-                      className={`border p-4 rounded-lg space-y-3 cursor-pointer transition-all ${activeFlow.selectedModel?.id === model.id ? 'border-[#111111] bg-neutral-50' : 'border-[#D7D7D7] hover:border-black'}`}
+                      className={`border p-4 rounded-[8px] space-y-3 cursor-pointer transition-all bg-[#0F0F11] ${activeFlow.selectedModel?.id === model.id ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                       onClick={() => onUpdateFlowData({ selectedModel: model })}
                     >
                       <div className="flex justify-between items-start">
-                        <span className="text-xs font-mono text-neutral-400">ID: {model.id}</span>
+                        <span className="text-[10px] font-mono text-[#8B8B93]">ID: {model.id}</span>
                         {activeFlow.selectedModel?.id === model.id && (
-                          <span className="text-[10px] bg-[#111111] text-white px-2 py-0.5 rounded uppercase font-bold">Выбрана</span>
+                          <span className="text-[9px] bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded font-bold uppercase font-sans">Выбрана</span>
                         )}
                       </div>
-                      <div className="aspect-[4/3] bg-neutral-100 rounded border border-neutral-200 flex items-center justify-center font-mono text-center text-[10px] text-neutral-500 p-2">
+                      <div className="aspect-[4/3] bg-[#16161A] rounded-[6px] border border-[rgba(255,255,255,0.05)] flex items-center justify-center font-mono text-center text-[10px] text-[#8B8B93] p-2">
                         {model.previewUrl}
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold">{model.name}</h4>
-                        <div className="text-[11px] text-neutral-500 flex flex-wrap gap-x-2 mt-1">
+                        <h4 className="text-sm font-semibold text-[#F8F8F8]">{model.name}</h4>
+                        <div className="text-[11px] text-[#8B8B93] flex flex-wrap gap-x-2 mt-1 font-sans">
                           <span>{model.gender} • {model.age} • {model.ethnotype} • {model.bodyType}</span>
                         </div>
                       </div>
@@ -430,40 +429,33 @@ export default function CreatePage({
                   ))}
                 </div>
                 {savedModels.length === 0 && (
-                  <p className="text-xs text-neutral-400 italic">Сохраненных моделей нет. Сгенерируйте новую.</p>
+                  <p className="text-xs text-[#8B8B93] italic font-sans py-4">Сохраненных моделей нет. Сгенерируйте новую.</p>
                 )}
                 
-                {activeFlow.selectedModel && (
-                  <button
-                    onClick={() => onStepChange(1)}
-                    className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
-                  >
-                    Выбрать эту модель и продолжить →
-                  </button>
-                )}
+
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start border border-[#D7D7D7] p-5 rounded-lg bg-neutral-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start border border-[rgba(255,255,255,0.08)] p-5 rounded-[12px] bg-[#0F0F11]">
                 {/* Form parameters creators */}
                 <div className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-semibold mb-1">Имя или ярлык новой модели</label>
+                    <label className="block text-[#B5B5BC] font-semibold mb-1">Имя или ярлык новой модели</label>
                     <input
                       type="text"
                       placeholder="Например: Кристина С."
                       value={newModelName}
                       onChange={(e) => setNewModelName(e.target.value)}
-                      className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                      className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8]"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block font-semibold mb-1">Пол</label>
+                      <label className="block text-[#B5B5BC] font-semibold mb-1">Пол</label>
                       <select
                         value={newModelGender}
                         onChange={(e: any) => setNewModelGender(e.target.value)}
-                        className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                        className="w-full bg-[#16161A] text-[#F8F8F8] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] rounded-[6px] p-2 text-xs"
                       >
                         <option value="Женский">Женский</option>
                         <option value="Мужской">Мужской</option>
@@ -471,11 +463,11 @@ export default function CreatePage({
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Возрастной диапазон</label>
+                      <label className="block text-[#B5B5BC] font-semibold mb-1">Возрастной диапазон</label>
                       <select
                         value={newModelAge}
                         onChange={(e: any) => setNewModelAge(e.target.value)}
-                        className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                        className="w-full bg-[#16161A] text-[#F8F8F8] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] rounded-[6px] p-2 text-xs"
                       >
                         <option value="18-22">18-22</option>
                         <option value="23-28">23-28</option>
@@ -486,11 +478,11 @@ export default function CreatePage({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block font-semibold mb-1">Этнотип</label>
+                      <label className="block text-[#B5B5BC] font-semibold mb-1">Этнотип</label>
                       <select
                         value={newModelEthno}
                         onChange={(e: any) => setNewModelEthno(e.target.value)}
-                        className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                        className="w-full bg-[#16161A] text-[#F8F8F8] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] rounded-[6px] p-2 text-xs"
                       >
                         <option value="Европейский">Европейский</option>
                         <option value="Азиатский">Азиатский</option>
@@ -500,11 +492,11 @@ export default function CreatePage({
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Комплекция тела</label>
+                      <label className="block text-[#B5B5BC] font-semibold mb-1">Комплекция тела</label>
                       <select
                         value={newModelBody}
                         onChange={(e: any) => setNewModelBody(e.target.value)}
-                        className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                        className="w-full bg-[#16161A] text-[#F8F8F8] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] rounded-[6px] p-2 text-xs"
                       >
                         <option value="Стройная">Стройная</option>
                         <option value="Атлетичная">Атлетичная</option>
@@ -515,23 +507,23 @@ export default function CreatePage({
                   </div>
 
                   <div>
-                    <label className="block font-semibold mb-1">Заметки и уточнения по лицу / волосам</label>
+                    <label className="block text-[#B5B5BC] font-semibold mb-1">Заметки и уточнения по лицу / волосам</label>
                     <textarea
                       placeholder="Темно-русые волосы до плеч, карие глаза..."
                       value={newModelNotes}
                       onChange={(e) => setNewModelNotes(e.target.value)}
                       rows={2}
-                      className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                      className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-[#D7D7D7]">
-                    <span className="text-[10px] text-neutral-400 font-mono">Баланс preview: {previewAttempts} / 3 попыток</span>
+                  <div className="flex items-center justify-between pt-3 border-t border-[rgba(255,255,255,0.08)]">
+                    <span className="text-[10px] text-[#8B8B93] font-mono">Баланс preview: {previewAttempts} / 3 попыток</span>
                     <button
                       type="button"
                       onClick={handleGenerateModelPreview}
                       disabled={previewGenerating || previewAttempts >= 3}
-                      className="bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-500 font-bold px-4 py-2 rounded transition-colors"
+                      className="bg-[#C9A35F] hover:bg-[#D4B474] disabled:bg-[#1A1A1D] disabled:text-[#8B8B93] text-[#050505] font-semibold px-4 py-2 rounded-[6px] transition-colors cursor-pointer"
                     >
                       {previewGenerating ? 'Создание макета...' : 'Сгенерировать preview'}
                     </button>
@@ -540,40 +532,38 @@ export default function CreatePage({
 
                 {/* Preview Box Response Area */}
                 <div className="space-y-4">
-                  <span className="block text-xs font-bold text-neutral-500 uppercase">Сгенерированный preview-макет</span>
+                  <span className="block text-xs font-bold text-[#8B8B93] uppercase tracking-wider">Сгенерированный preview-макет</span>
                   {previewModel ? (
-                    <div className="bg-white border border-[#D7D7D7] rounded-lg p-4 text-center space-y-4">
+                    <div className="bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-4 text-center space-y-4">
                       
-                      <div className="aspect-[3/4] bg-[#F1F1F1] border rounded flex flex-col items-center justify-center p-4 relative text-neutral-500">
-                        <div className="w-16 h-16 border rounded-full bg-white flex items-center justify-center text-xs font-mono font-bold leading-none">
+                      <div className="aspect-[3/4] bg-[#0F0F11] border border-[rgba(255,255,255,0.05)] rounded-[6px] flex flex-col items-center justify-center p-4 relative text-[#8B8B93]">
+                        <div className="w-16 h-16 border border-[rgba(255,255,255,0.12)] bg-[#16161A] text-[#C9A35F] rounded-full flex items-center justify-center text-xs font-mono font-bold leading-none">
                           {previewModel.gender[0]}
                         </div>
-                        <span className="text-xs font-semibold mt-4 text-[#111111]">{previewModel.name}</span>
-                        <span className="text-[10px] font-mono mt-1 text-neutral-400 leading-normal block max-w-xs">
+                        <span className="text-xs font-semibold mt-4 text-[#F8F8F8]">{previewModel.name}</span>
+                        <span className="text-[10px] font-mono mt-1 text-[#8B8B93] leading-normal block max-w-xs">
                           {previewModel.previewUrl}
                         </span>
-                        
-                        <div className="absolute inset-0 bg-neutral-900/5 mix-blend-overlay"></div>
                       </div>
 
                       <div className="space-y-2 pt-1">
                         <button
                           onClick={selectGeneratedModel}
-                          className="w-full bg-[#111111] hover:bg-neutral-800 text-white font-medium text-xs py-2 rounded"
+                          className="w-full bg-[#C9A35F] hover:bg-[#D4B474] text-[#050505] font-semibold text-xs py-2 rounded-[6px] cursor-pointer"
                         >
                           Утвердить эту модель
                         </button>
                         <button
                           onClick={handleGenerateModelPreview}
-                          className="w-full border border-[#D7D7D7] hover:bg-neutral-50 text-xs py-2 rounded text-[#555555]"
+                          className="w-full border border-[rgba(255,255,255,0.12)] hover:bg-[#16161A] text-xs py-2 rounded-[6px] text-[#B5B5BC] cursor-pointer transition-colors"
                         >
                           Перегенерировать (Попытка {previewAttempts + 1} из 3)
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="h-64 border border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center text-center p-4 text-neutral-400 text-xs">
-                      <Users size={20} className="mb-2 text-neutral-300" />
+                    <div className="h-64 border border-dashed border-[rgba(255,255,255,0.12)] rounded-[8px] flex flex-col items-center justify-center text-center p-4 text-[#8B8B93] text-xs">
+                      <Users size={20} className="mb-2 text-[#8B8B93]" />
                       <span>Параметры модели укомплектованы. Нажмите "Сгенерировать preview", чтобы увидеть макет.</span>
                     </div>
                   )}
@@ -587,34 +577,34 @@ export default function CreatePage({
         {currentStepIndex === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-bold">Шаг 2: Гардероб и комплект одежды</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 2: Гардероб и комплект одежды</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Загрузите референсные фотографии вещей в специальные слоты для анализа масок (минимум 2 кадра).
               </p>
             </div>
 
-            <div className="flex gap-2 bg-[#F1F1F1] rounded-lg p-1 text-xs max-w-xs">
+            <div className="flex gap-1 bg-[#16161A] rounded-[8px] p-1 text-xs max-w-xs">
               <button
                 onClick={() => setWardrobeTab('upload')}
-                className={`flex-1 py-1 px-3 rounded transition-all ${wardrobeTab === 'upload' ? 'bg-white font-bold' : ''}`}
+                className={`flex-1 py-1.5 px-3 rounded-[6px] transition-all cursor-pointer ${wardrobeTab === 'upload' ? 'bg-[#1D1D21] text-[#C9A35F] font-semibold' : 'text-[#8B8B93]'}`}
               >
                 Загрузить вещи
               </button>
               <button
                 onClick={() => setWardrobeTab('select')}
-                className={`flex-1 py-1 px-3 rounded transition-all ${wardrobeTab === 'select' ? 'bg-white font-bold' : ''}`}
+                className={`flex-1 py-1.5 px-3 rounded-[6px] transition-all cursor-pointer ${wardrobeTab === 'select' ? 'bg-[#1D1D21] text-[#C9A35F] font-semibold' : 'text-[#8B8B93]'}`}
               >
                 База гардероба
               </button>
             </div>
 
             {wardrobeTab === 'upload' ? (
-              <div className="space-y-6 border border-[#D7D7D7] p-5 rounded-lg bg-neutral-50">
+              <div className="space-y-6 border border-[rgba(255,255,255,0.08)] p-5 rounded-[12px] bg-[#0F0F11]">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold uppercase tracking-wider text-neutral-500">
+                  <span className="font-bold uppercase tracking-wider text-[#8B8B93]">
                     Слоты классификации одежды
                   </span>
-                  <span className="font-mono text-neutral-700">
+                  <span className="font-mono text-[#F8F8F8]">
                     Загружено: {Object.values(uploadSlots).filter(Boolean).length} / 7
                   </span>
                 </div>
@@ -634,14 +624,14 @@ export default function CreatePage({
                     return (
                       <div
                         key={slot.id}
-                        className={`aspect-[3/4] border rounded-lg p-2.5 flex flex-col justify-between text-center relative overflow-hidden transition-all ${file ? 'bg-white border-[#111111]' : 'bg-neutral-50 border-dashed border-[#D7D7D7] hover:border-black'}`}
+                        className={`aspect-[3/4] border rounded-[8px] p-2.5 flex flex-col justify-between text-center relative overflow-hidden transition-all ${file ? 'bg-[#16161A] border-[#C9A35F]' : 'bg-[#16161A] border-dashed border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                       >
                         <div className="flex justify-between items-start gap-1">
-                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-neutral-500">{slot.label}</span>
+                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#8B8B93]">{slot.label}</span>
                           {file && (
                             <button
                               onClick={() => clearSlot(slot.id)}
-                              className="text-red-500 hover:text-red-600 text-[10px]"
+                              className="text-[#C97878] hover:text-red-400 text-[10px] cursor-pointer font-bold"
                             >
                               ✕
                             </button>
@@ -650,20 +640,20 @@ export default function CreatePage({
 
                         {file ? (
                           <div className="flex-1 flex flex-col justify-center items-center p-1 text-center">
-                            <Shirt size={14} className="text-[#111111] mb-1" />
-                            <span className="text-[10px] font-mono leading-none break-words text-neutral-600">{file.name}</span>
+                            <Shirt size={14} className="text-[#C9A35F] mb-1" />
+                            <span className="text-[10px] font-mono leading-none break-all text-[#B5B5BC]">{file.name}</span>
                           </div>
                         ) : (
                           <div
                             onClick={() => handleSimulateUploadSlot(slot.id)}
-                            className="flex-grow flex flex-col justify-center items-center cursor-pointer p-1 text-neutral-400 group"
+                            className="flex-grow flex flex-col justify-center items-center cursor-pointer p-1 text-[#8B8B93] group"
                           >
-                            <UploadCloud size={16} className="text-neutral-400 group-hover:scale-110 transition-transform" />
-                            <span className="text-[8px] mt-1 font-mono">{slot.desc}</span>
+                            <UploadCloud size={16} className="text-[#8B8B93] group-hover:scale-115 transition-transform group-hover:text-[#C9A35F]" />
+                            <span className="text-[8px] mt-1.5 font-mono">{slot.desc}</span>
                           </div>
                         )}
                         
-                        <span className="text-[9px] text-[#A8A8A8] font-mono italic block">Слот {slot.id}</span>
+                        <span className="text-[9px] text-[#8B8B93] font-mono italic block">Слот {slot.id}</span>
                       </div>
                     );
                   })}
@@ -671,30 +661,30 @@ export default function CreatePage({
 
                 {/* Multi item inline validator summaries */}
                 {Object.values(uploadSlots).filter(Boolean).length > 0 && (
-                  <div className="p-3.5 bg-white border border-[#D7D7D7] rounded-lg text-xs space-y-1.5 font-sans leading-relaxed">
-                    <span className="font-bold text-[#111111] tracking-wider uppercase text-[10px] block">Проверка совмещений ModAI:</span>
+                  <div className="p-3.5 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[8px] text-xs space-y-1.5 font-sans leading-relaxed">
+                    <span className="font-bold text-[#C9A35F] tracking-wider uppercase text-[10px] block font-sans">Проверка совмещений ModAI:</span>
                     
                     {!uploadSlots[1] && (
-                      <p className="text-amber-800 flex items-center gap-1">
+                      <p className="text-[#C97878] flex items-center gap-1.5 font-sans">
                         ⚠️ <strong>Внимание: Слот 1 пуст.</strong> Передний ракурс необходим для усадки силуэта платья.
                       </p>
                     )}
                     {!uploadSlots[2] && (
-                      <p className="text-amber-800 flex items-center gap-1">
+                      <p className="text-[#C97878] flex items-center gap-1.5 font-sans">
                         ⚠️ <strong>Предупреждение: Слот 2 пуст.</strong> Спецификация спины будет смоделирована ИИ приближенно.
                       </p>
                     )}
                     {Object.values(uploadSlots).filter(Boolean).length >= 2 && uploadSlots[1] && (
-                      <p className="text-neutral-900 font-semibold flex items-center gap-1">
+                      <p className="text-[#78A98A] font-semibold flex items-center gap-1.5 font-sans">
                         ✓ Лимиты соблюдены. Вы можете продолжить упаковку комплекта одежды.
                       </p>
                     )}
                   </div>
                 )}
 
-                <div className="space-y-3 pt-3 border-t border-[#D7D7D7]">
+                <div className="space-y-3 pt-3 border-t border-[rgba(255,255,255,0.08)] font-sans">
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">
+                    <label className="block text-xs font-semibold text-[#B5B5BC] mb-1.5">
                       Дайте название этому комплекту одежды
                     </label>
                     <input
@@ -702,17 +692,11 @@ export default function CreatePage({
                       placeholder="Например: Осеннее серое шерстяное пальто с шарфом"
                       value={uploadKitName}
                       onChange={(e) => setUploadKitName(e.target.value)}
-                      className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs"
+                      className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8]"
                     />
                   </div>
 
-                  <button
-                    disabled={Object.values(uploadSlots).filter(Boolean).length < 2}
-                    onClick={handleSaveUploadedKit}
-                    className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded disabled:bg-neutral-200 disabled:text-neutral-400"
-                  >
-                    Продолжить с этим комплектом одежды (Усадка маски) →
-                  </button>
+
                 </div>
               </div>
             ) : (
@@ -721,43 +705,36 @@ export default function CreatePage({
                   {wardrobeKits.map((kit) => (
                     <div
                       key={kit.id}
-                      className={`border p-4 rounded-lg space-y-3 cursor-pointer transition-all ${activeFlow.selectedKit?.id === kit.id ? 'border-[#111111] bg-neutral-50' : 'border-[#D7D7D7] hover:border-black'}`}
+                      className={`border p-4 rounded-[8px] bg-[#0F0F11] space-y-3 cursor-pointer transition-all ${activeFlow.selectedKit?.id === kit.id ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                       onClick={() => onUpdateFlowData({ selectedKit: kit, lookName: `Образ с "${kit.name}"` })}
                     >
                       <div className="flex justify-between items-start">
-                        <span className="text-xs font-mono text-neutral-400">ID: {kit.id}</span>
+                        <span className="text-[10px] font-mono text-[#8B8B93]">ID: {kit.id}</span>
                         {activeFlow.selectedKit?.id === kit.id && (
-                          <span className="text-[10px] bg-[#111111] text-white px-2 py-0.5 rounded uppercase font-bold">Выбран</span>
+                          <span className="text-[9px] bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded font-bold uppercase">Выбран</span>
                         )}
                       </div>
                       
                       {/* Grid representation */}
-                      <div className="grid grid-cols-4 gap-1.5 bg-[#F1F1F1] p-2 rounded">
+                      <div className="grid grid-cols-4 gap-1.5 bg-[#16161A] p-2 rounded-[6px]">
                         {kit.items.map((i, idx) => (
-                          <div key={idx} className="aspect-square bg-white border border-neutral-300 rounded flex items-center justify-center text-[9px] font-mono p-1">
+                          <div key={idx} className="aspect-square bg-[#1D1D21] border border-[rgba(255,255,255,0.05)] text-[#C9A35F] rounded flex items-center justify-center text-[9px] font-mono p-1">
                             {i.sideType[0].toUpperCase()}
                           </div>
                         ))}
                       </div>
 
-                      <h4 className="text-sm font-semibold">{kit.name}</h4>
-                      <p className="text-[10px] text-neutral-400 uppercase font-mono">Содержит вещей: {kit.items.length}</p>
+                      <h4 className="text-sm font-semibold text-[#F8F8F8]">{kit.name}</h4>
+                      <p className="text-[10px] text-[#8B8B93] uppercase font-mono">Содержит вещей: {kit.items.length}</p>
                     </div>
                   ))}
                 </div>
 
                 {wardrobeKits.length === 0 && (
-                  <p className="text-xs text-neutral-400 italic">База пуста. Попробуйте вкладку "Загрузить вещи".</p>
+                  <p className="text-xs text-[#8B8B93] italic font-sans py-4">База пуста. Попробуйте вкладку "Загрузить вещи".</p>
                 )}
 
-                {activeFlow.selectedKit && (
-                  <button
-                    onClick={() => onStepChange(2)}
-                    className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
-                  >
-                    Использовать этот комплект одежды →
-                  </button>
-                )}
+
               </div>
             )}
           </div>
@@ -765,70 +742,64 @@ export default function CreatePage({
 
         {/* Step 3: Dressed Model Look Card */}
         {currentStepIndex === 2 && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-bold">Шаг 3: Согласование Образа (Look)</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 3: Согласование Образа (Look)</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Образ соединяет макет выбранной модели и усадку комплекта вещей в единый черновик.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border border-[#D7D7D7] p-5 rounded-lg bg-neutral-50 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border border-[rgba(255,255,255,0.08)] p-5 rounded-[12px] bg-[#0F0F11] text-xs">
               <div className="space-y-4">
                 <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">
+                  <label className="block text-[#B5B5BC] font-semibold mb-1.5">
                     Задайте название Образа для истории (Look Name)
                   </label>
                   <input
                     type="text"
                     value={activeFlow.lookName}
                     onChange={(e) => onUpdateFlowData({ lookName: e.target.value })}
-                    className="w-full bg-white border border-[#D7D7D7] rounded p-2 text-xs font-semibold"
+                    className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8] font-semibold"
                   />
                 </div>
 
-                <div className="p-4 bg-white border border-[#D7D7D7] rounded-lg space-y-2.5">
-                  <span className="block text-[10px] uppercase font-bold text-neutral-400">Технологический паспорт образа</span>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">AI Модель:</span>
-                    <span className="font-semibold">{activeFlow.selectedModel?.name} ({activeFlow.selectedModel?.gender})</span>
+                <div className="p-4 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[8px] space-y-2.5">
+                  <span className="block text-[9px] uppercase font-bold tracking-wider text-[#8B8B93]">Технологический паспорт образа</span>
+                  <div className="flex justify-between items-center text-[#B5B5BC]">
+                    <span className="text-[#8B8B93]">AI Модель:</span>
+                    <span className="font-semibold text-[#F8F8F8]">{activeFlow.selectedModel?.name} ({activeFlow.selectedModel?.gender})</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Одежда каталога:</span>
-                    <span className="font-semibold block max-w-[150px] truncate">{activeFlow.selectedKit?.name}</span>
+                  <div className="flex justify-between items-center text-[#B5B5BC]">
+                    <span className="text-[#8B8B93]">Одежда каталога:</span>
+                    <span className="font-semibold text-[#F8F8F8] block max-w-[150px] truncate">{activeFlow.selectedKit?.name}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Слоты ракурсов:</span>
-                    <span className="font-mono font-semibold text-neutral-600">{activeFlow.selectedKit?.items.length} фото вещей</span>
+                  <div className="flex justify-between items-center text-[#B5B5BC]">
+                    <span className="text-[#8B8B93]">Слоты ракурсов:</span>
+                    <span className="font-mono font-semibold text-[#C9A35F]">{activeFlow.selectedKit?.items.length} фото вещей</span>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleConfirmLook}
-                  className="w-full bg-[#111111] hover:bg-neutral-800 text-white font-bold py-2.5 rounded text-xs transition-colors"
-                >
-                  Утвердить образ и продолжить →
-                </button>
+
               </div>
 
               {/* Look Preview Wireframe Display */}
               <div className="space-y-3">
-                <span className="block text-xs font-bold text-neutral-500 uppercase">Макет слияния (Wireframe)</span>
+                <span className="block text-xs font-bold text-[#8B8B93] uppercase tracking-wider">Макет слияния (Wireframe)</span>
                 
-                <div className="aspect-[4/3] bg-white border border-[#C5C5C5] rounded-lg p-5 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                  {/* Grayscale mannequin dressing mockups styling */}
-                  <div className="w-14 h-14 border border-[#A8A8A8] bg-[#F1F1F1] rounded-full text-xs font-mono font-bold flex items-center justify-center text-neutral-500">
+                <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                  <div className="w-14 h-14 border border-[rgba(255,255,255,0.12)] bg-[#1D1D21] text-[#C9A35F] rounded-full text-xs font-mono font-bold flex items-center justify-center">
                     O
                   </div>
-                  <div className="w-24 h-12 border-2 border-dashed border-[#A8A8A8] bg-[#F6F6F6] rounded flex items-center justify-center font-mono font-bold text-[10px] text-[#111111] mt-2">
+                  <div className="w-24 h-12 border border-dashed border-[#C9A35F] bg-[rgba(201,163,95,0.04)] rounded flex items-center justify-center font-mono font-bold text-[10px] text-[#C9A35F] mt-3 uppercase tracking-wider">
                     [Маска силуэта]
                   </div>
 
-                  <span className="text-[10px] text-neutral-400 mt-3 font-mono">
+                  <span className="text-[10px] text-[#8B8B93] mt-3 font-mono">
                     Слияние: {activeFlow.selectedModel?.name} + {activeFlow.selectedKit?.name}
                   </span>
                   
-                  <div className="absolute inset-x-0 bottom-0 bg-[#F1F1F1] py-1 border-t text-[10px] font-mono font-semibold tracking-wide text-neutral-600 text-center uppercase">
+                  <div className="absolute inset-x-0 bottom-0 bg-[#1D1D21] py-1 border-t border-[rgba(255,255,255,0.05)] text-[9px] font-mono font-bold tracking-wider text-[#C9A35F] text-center uppercase">
                     Образ готов к съемке
                   </div>
                 </div>
@@ -839,21 +810,21 @@ export default function CreatePage({
 
         {/* Step 4: Predefined Location & Controlled Light parameters */}
         {currentStepIndex === 3 && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-bold">Шаг 4: Выберите локацию и освещение</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 4: Выберите локацию и освещение</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Используйте предустановленные испанские пейзажи или минималистичные интерьеры для сопряжения кожи модели со светом.
               </p>
             </div>
 
             {/* Segmented geography tabs */}
-            <div className="flex flex-wrap gap-1.5 border-b border-[#D7D7D7] pb-2">
+            <div className="flex flex-wrap gap-1.5 border-b border-[rgba(255,255,255,0.08)] pb-2 text-xs">
               {LOCATION_CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveGeoCategory(cat.id)}
-                  className={`px-3 py-1 text-xs border rounded-full transition-all ${activeGeoCategory === cat.id ? 'bg-[#111111] text-white border-black font-semibold' : 'bg-white border-[#D7D7D7] text-[#555555] hover:bg-neutral-50'}`}
+                  className={`px-3 py-1.5 border rounded-full transition-all cursor-pointer ${activeGeoCategory === cat.id ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#16161A] border-[rgba(255,255,255,0.08)] text-[#8B8B93] hover:text-[#F8F8F8]'}`}
                 >
                   {cat.name}
                 </button>
@@ -869,15 +840,15 @@ export default function CreatePage({
                   <div
                     key={loc}
                     onClick={() => onUpdateFlowData({ selectedLocation: loc })}
-                    className={`border p-4 rounded-lg space-y-3 cursor-pointer transition-all ${isSelected ? 'border-[#111111] bg-neutral-50' : 'border-[#D7D7D7] hover:border-black'}`}
+                    className={`border p-4 rounded-[8px] space-y-3 cursor-pointer transition-all bg-[#0F0F11] ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                   >
-                    <div className="aspect-[4/3] bg-[#F1F1F1] border rounded flex items-center justify-center p-2 relative overflow-hidden">
-                      <MapPin size={16} className="text-neutral-400" />
-                      <span className="text-[10px] font-mono font-semibold text-neutral-600 uppercase ml-1">{loc}</span>
+                    <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.05)] rounded-[6px] flex items-center justify-center p-2 relative overflow-hidden">
+                      <MapPin size={16} className="text-[#C9A35F]" />
+                      <span className="text-[10px] font-mono font-semibold text-[#8B8B93] uppercase ml-1.5 truncate">{loc}</span>
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold">{loc}</h4>
-                      <p className="text-[11px] text-neutral-500 leading-tight mt-1">{descs[idx]}</p>
+                      <h4 className="text-xs font-bold text-[#F8F8F8]">{loc}</h4>
+                      <p className="text-[11px] text-[#8B8B93] leading-normal font-sans mt-1.5">{descs[idx]}</p>
                     </div>
                   </div>
                 );
@@ -885,14 +856,14 @@ export default function CreatePage({
             </div>
 
             {/* Controlled visual parameters lighting */}
-            <div className="border border-[#D7D7D7] p-4 rounded-lg bg-neutral-50 text-xs space-y-4">
-              <div className="flex justify-between items-center border-b border-[#D7D7D7] pb-2">
-                <span className="font-bold uppercase tracking-wider text-neutral-500">
+            <div className="border border-[rgba(255,255,255,0.08)] p-4 rounded-[8px] bg-[#0F0F11] text-xs space-y-4">
+              <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.08)] pb-2.5">
+                <span className="font-bold uppercase tracking-wider text-[#8B8B93] text-[10px]">
                   Управляемое освещение (Controlled Lighting)
                 </span>
                 <button
                   onClick={handleControlledSettingsReset}
-                  className="text-[#555555] hover:text-[#111111] text-[10px] font-semibold underline uppercase"
+                  className="text-[#C9A35F] hover:text-[#D4B474] text-[10px] font-semibold underline uppercase cursor-pointer"
                 >
                   Сбросить к дефолту
                 </button>
@@ -901,15 +872,15 @@ export default function CreatePage({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* 1. Temp */}
                 <div className="space-y-1.5">
-                  <span className="text-neutral-500 font-medium">Цветовой тон:</span>
-                  <div className="flex gap-1.5 bg-white border border-[#D7D7D7] rounded p-1">
+                  <span className="text-[#8B8B93] font-medium">Цветовой тон:</span>
+                  <div className="flex gap-1 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] p-1">
                     {['Теплый', 'Холодный'].map((t) => (
                       <button
                         key={t}
                         onClick={() => onUpdateFlowData({
                           locationSettings: { ...activeFlow.locationSettings, temperature: t as any }
                         })}
-                        className={`flex-1 py-1 text-[10px] font-semibold rounded ${activeFlow.locationSettings.temperature === t ? 'bg-[#111111] text-white' : 'hover:bg-neutral-100'}`}
+                        className={`flex-1 py-1 text-[10px] font-semibold rounded-[4px] cursor-pointer transition-colors ${activeFlow.locationSettings.temperature === t ? 'bg-[#C9A35F] text-[#050505]' : 'hover:bg-[#1D1D21] text-[#8B8B93]'}`}
                       >
                         {t}
                       </button>
@@ -919,15 +890,15 @@ export default function CreatePage({
 
                 {/* 2. Hardness */}
                 <div className="space-y-1.5">
-                  <span className="text-neutral-500 font-medium font-sans">Жесткость теней:</span>
-                  <div className="flex gap-1.5 bg-white border border-[#D7D7D7] rounded p-1">
+                  <span className="text-[#8B8B93] font-medium font-sans">Жесткость теней:</span>
+                  <div className="flex gap-1 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] p-1">
                     {['Мягкий', 'Контрастный'].map((h) => (
                       <button
                         key={h}
                         onClick={() => onUpdateFlowData({
                           locationSettings: { ...activeFlow.locationSettings, hardness: h as any }
                         })}
-                        className={`flex-1 py-1 text-[10px] font-semibold rounded ${activeFlow.locationSettings.hardness === h ? 'bg-[#111111] text-white' : 'hover:bg-neutral-100'}`}
+                        className={`flex-1 py-1 text-[10px] font-semibold rounded-[4px] cursor-pointer transition-colors ${activeFlow.locationSettings.hardness === h ? 'bg-[#C9A35F] text-[#050505]' : 'hover:bg-[#1D1D21] text-[#8B8B93]'}`}
                       >
                         {h}
                       </button>
@@ -937,15 +908,15 @@ export default function CreatePage({
 
                 {/* 3. Intensity */}
                 <div className="space-y-1.5">
-                  <span className="text-neutral-500 font-medium">Интенсивность лучей:</span>
-                  <div className="flex gap-1.5 bg-white border border-[#D7D7D7] rounded p-1">
+                  <span className="text-[#8B8B93] font-medium">Интенсивность лучей:</span>
+                  <div className="flex gap-1 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] p-1">
                     {['Приглушенный', 'Яркий'].map((i) => (
                       <button
                         key={i}
                         onClick={() => onUpdateFlowData({
                           locationSettings: { ...activeFlow.locationSettings, intensity: i as any }
                         })}
-                        className={`flex-1 py-1 text-[10px] font-semibold rounded ${activeFlow.locationSettings.intensity === i ? 'bg-[#111111] text-white' : 'hover:bg-neutral-100'}`}
+                        className={`flex-1 py-1 text-[10px] font-semibold rounded-[4px] cursor-pointer transition-colors ${activeFlow.locationSettings.intensity === i ? 'bg-[#C9A35F] text-[#050505]' : 'hover:bg-[#1D1D21] text-[#8B8B93]'}`}
                       >
                         {i}
                       </button>
@@ -955,28 +926,21 @@ export default function CreatePage({
               </div>
 
               {/* Spain info footnote */}
-              <p className="text-[10px] leading-relaxed text-neutral-400 border-t border-[#D7D7D7] pt-2">
+              <p className="text-[10px] leading-relaxed text-[#8B8B93] border-t border-[rgba(255,255,255,0.08)] pt-2.5">
                 * Видео-шаблон сохраняет свой стиль; настройки света применяются как мягкое направление.
               </p>
             </div>
 
-            {activeFlow.selectedLocation && (
-              <button
-                onClick={() => onStepChange(4)}
-                className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
-              >
-                Выбрать эту локацию и продолжить →
-              </button>
-            )}
+
           </div>
         )}
 
         {/* Step 5: Pose Pack Selection (5 distinct formats) */}
         {currentStepIndex === 4 && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-bold">Шаг 5: Выберите пакет поз</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 5: Выберите пакет поз</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Пакеты поз задают направление силуэтов для всех 7 фото результатов в Вашем архиве.
               </p>
             </div>
@@ -988,26 +952,26 @@ export default function CreatePage({
                   <div
                     key={pack.id}
                     onClick={() => onUpdateFlowData({ selectedPosePack: pack.name })}
-                    className={`border p-4 rounded-lg rounded-lg cursor-pointer transition-all ${isSelected ? 'border-[#111111] bg-neutral-50' : 'border-[#D7D7D7] hover:border-black'}`}
+                    className={`border p-4 rounded-[12px] bg-[#0F0F11] cursor-pointer transition-all ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                   >
-                    <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                    <div className="flex justify-between items-center flex-wrap gap-2 mb-2.5">
                       <div>
-                        <h4 className="text-xs font-bold">{pack.name}</h4>
-                        <p className="text-[10.5px] text-slate-500 italic mt-0.5">Классификация: {pack.description}</p>
+                        <h4 className="text-xs font-bold text-[#F8F8F8]">{pack.name}</h4>
+                        <p className="text-[10.5px] text-[#8B8B93] italic mt-0.5">Классификация: {pack.description}</p>
                       </div>
                       {isSelected && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider bg-black text-white px-2 py-0.5 rounded">
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded-[4px]">
                           Выбран
                         </span>
                       )}
                     </div>
 
                     {/* 7 skeleton thumbnails representations */}
-                    <div className="grid grid-cols-7 gap-1 bg-[#F1F1F1] p-2 rounded">
+                    <div className="grid grid-cols-7 gap-1.5 bg-[#16161A] p-2.5 rounded-[8px]">
                       {pack.frames.map((f, i) => (
-                        <div key={i} className="aspect-[3/4] bg-white rounded border border-neutral-300 p-1 flex flex-col justify-between text-center relative overflow-hidden">
-                          <span className="text-[8px] font-mono leading-none font-bold text-neutral-400">Ш{i + 1}</span>
-                          <span className="text-[7.5px] font-sans scale-90 truncate max-w-full text-[#555555] font-semibold">{f}</span>
+                        <div key={i} className="aspect-[3/4] bg-[#1D1D21] rounded border border-[rgba(255,255,255,0.05)] p-1.5 flex flex-col justify-between text-center relative overflow-hidden">
+                          <span className="text-[8px] font-mono leading-none font-bold text-[#8B8B93]">Ш{i + 1}</span>
+                          <span className="text-[8.5px] font-sans scale-90 truncate max-w-full text-[#B5B5BC] font-semibold text-center block mt-0.5">{f}</span>
                         </div>
                       ))}
                     </div>
@@ -1016,23 +980,16 @@ export default function CreatePage({
               })}
             </div>
 
-            {activeFlow.selectedPosePack && (
-              <button
-                onClick={() => onStepChange(isKit ? 5 : 5)} // if kit: go to Step 5 (video), else Step 5 (review, but wait: index is 5 for video, 6 for review)
-                className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
-              >
-                Выбрать этот пакет поз →
-              </button>
-            )}
+
           </div>
         )}
 
         {/* Step 6: Video Template (For kit credits only) */}
         {currentStepIndex === 5 && isKit && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-bold">Шаг 6: Видео-шаблон (15 секунд, 9:16)</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Шаг 6: Видео-шаблон (15 секунд, 9:16)</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
                 Выбранный комплект будет преобразован в плавный 15-секундный вертикальный ролик на выбранной циклораме.
               </p>
             </div>
@@ -1044,203 +1001,280 @@ export default function CreatePage({
                   <div
                     key={tmpl.id}
                     onClick={() => onUpdateFlowData({ selectedVideoTemplate: tmpl.name })}
-                    className={`border p-4 rounded-lg space-y-3 cursor-pointer transition-all ${isSelected ? 'border-[#111111] bg-neutral-50' : 'border-[#D7D7D7] hover:border-black'}`}
+                    className={`border p-4 rounded-[12px] bg-[#0F0F11] space-y-3 cursor-pointer transition-all ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
                   >
                     <div className="flex justify-between items-start">
-                      <span className="text-xs font-bold">{tmpl.name}</span>
+                      <span className="text-xs font-bold text-[#F8F8F8]">{tmpl.name}</span>
                       {isSelected && (
-                        <span className="text-[10px] bg-neutral-900 text-white rounded px-1.5 font-bold uppercase tracking-wider">Выбран</span>
+                        <span className="text-[9px] bg-[#C9A35F] text-[#050505] rounded px-1.5 font-bold uppercase tracking-wider font-sans">Выбран</span>
                       )}
                     </div>
                     
-                    <div className="aspect-[9/16] max-h-48 bg-[#F1F1F1] border rounded flex flex-col justify-center items-center text-center p-3 relative overflow-hidden">
-                      <Play size={20} className="text-[#111111]" />
-                      <span className="text-[10px] font-mono mt-2 text-neutral-400 uppercase tracking-widest">{tmpl.specs}</span>
+                    <div className="aspect-[9/16] max-h-48 bg-[#16161A] border border-[rgba(255,255,255,0.05)] rounded-[6px] flex flex-col justify-center items-center text-center p-3 relative overflow-hidden">
+                      <Play size={20} className="text-[#C9A35F]" />
+                      <span className="text-[10px] font-mono mt-2 text-[#8B8B93] uppercase tracking-widest">{tmpl.specs}</span>
                     </div>
 
-                    <p className="text-[11px] text-[#555555] leading-relaxed">{tmpl.description}</p>
+                    <p className="text-[11px] text-[#8B8B93] leading-relaxed font-sans">{tmpl.description}</p>
                   </div>
                 );
               })}
             </div>
 
-            {activeFlow.selectedVideoTemplate && (
-              <button
-                onClick={() => onStepChange(6)}
-                className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
-              >
-                Выбрать этот видео-шаблон →
-              </button>
-            )}
+
           </div>
         )}
 
         {/* Step 7: Final Review Brief & Checkout Reservation launch trigger */}
         {((currentStepIndex === 5 && !isKit) || currentStepIndex === 6) && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-bold">Финальный обзор продакшена (Бриф)</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Пожалуйста, внимательно изучите состав заказа. Запуск зарезервирует один кредит с баланса Вашего аккаунта.
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Финальный обзор продакшена (Бриф)</h2>
+              <p className="text-xs text-[#8B8B93] mt-0.5">
+                Пожалуйста, внимательно изучите состав заказа. Запуск зарезервирует необходимую сумму кредитов с баланса Вашего аккаунта.
               </p>
             </div>
 
-            <div className="border border-[#D7D7D7] rounded-lg p-5 bg-neutral-50 text-xs space-y-4">
-              <span className="block font-bold text-neutral-500 uppercase tracking-widest text-[10px]">Сводный бриф заказа</span>
+            <div className="border border-[rgba(255,255,255,0.08)] rounded-[12px] p-5 bg-[#0F0F11] text-xs space-y-4">
+              <span className="block font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">Сводный бриф заказа</span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 divide-y sm:divide-y-0 divide-[#F1F1F1]">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Название образа:</span>
-                    <span className="font-semibold">{activeFlow.lookName}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 divide-y sm:divide-y-0 divide-[rgba(255,255,255,0.08)]">
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Название образа:</span>
+                    <span className="font-semibold text-[#F8F8F8]">{activeFlow.lookName}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Модель:</span>
-                    <span className="font-semibold">{activeFlow.selectedModel?.name} ({activeFlow.selectedModel?.gender})</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Модель:</span>
+                    <span className="font-semibold text-[#F8F8F8]">{activeFlow.selectedModel?.name} ({activeFlow.selectedModel?.gender})</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Комплект одежды:</span>
-                    <span className="font-semibold truncate max-w-[120px]">{activeFlow.selectedKit?.name}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Комплект одежды:</span>
+                    <span className="font-semibold text-[#F8F8F8] truncate max-w-[120px]">{activeFlow.selectedKit?.name}</span>
                   </div>
                 </div>
                 
-                <div className="space-y-2 pt-4 sm:pt-0">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Свет и локация:</span>
-                    <span className="font-semibold">{activeFlow.selectedLocation}</span>
+                <div className="space-y-2.5 pt-4 sm:pt-0">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Свет и локация:</span>
+                    <span className="font-semibold text-[#F8F8F8]">{activeFlow.selectedLocation}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Управляемый свет:</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Управляемый свет:</span>
                     <div className="flex gap-1">
-                      <span className="bg-white border text-[10px] px-1 rounded">{activeFlow.locationSettings.temperature}</span>
-                      <span className="bg-white border text-[10px] px-1 rounded">{activeFlow.locationSettings.hardness}</span>
+                      <span className="bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[10px] px-1.5 py-0.5 text-[#C9A35F] rounded font-semibold">{activeFlow.locationSettings.temperature}</span>
+                      <span className="bg-[#16161A] border border-[rgba(255,255,255,0.08)] text-[10px] px-1.5 py-0.5 text-[#C9A35F] rounded font-semibold">{activeFlow.locationSettings.hardness}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">Направление поз:</span>
-                    <span className="font-semibold">{activeFlow.selectedPosePack}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8B8B93]">Направление поз:</span>
+                    <span className="font-semibold text-[#F8F8F8]">{activeFlow.selectedPosePack}</span>
                   </div>
                   {isKit && (
-                    <div className="flex justify-between border-t border-dashed border-[#D7D7D7] pt-1 mt-1">
-                      <span className="text-neutral-500">Видео-шаблон (15c):</span>
-                      <span className="font-semibold font-mono text-[#111111]">{activeFlow.selectedVideoTemplate}</span>
+                    <div className="flex justify-between items-center border-t border-dashed border-[rgba(255,255,255,0.08)] pt-2.5 mt-1">
+                      <span className="text-[#8B8B93]">Видео-шаблон (15c):</span>
+                      <span className="font-semibold font-mono text-[#C9A35F]">{activeFlow.selectedVideoTemplate}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Reserved accounts warning */}
-              <div className="p-3.5 bg-neutral-900 text-white rounded-lg font-mono text-[11px] leading-relaxed flex justify-between items-center">
-                <span>
-                  Будет зарезервирован на время генерации: <strong className="text-amber-300">1 {isKit ? 'комплект' : 'фото'}-кредит</strong>
-                </span>
-                <span className="text-neutral-400">Списание только после Ready</span>
+              <div className="p-3.5 bg-[rgba(201,163,95,0.08)] border border-[rgba(201,163,95,0.2)] text-white rounded-[8px] font-mono text-[11px] leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5 font-sans">
+                  <div className="text-[#C9A35F] font-bold">
+                    {isKit ? 'Будет зарезервирован: 1 кредит' : 'Будет зарезервировано: 0,5 кредита'}
+                  </div>
+                  <div className="text-[#8B8B93] text-[10px]">
+                    После запуска останется: {formatCreditsWithLabel(Math.max(0, creditBalance - (isKit ? 1 : 0.5)))}
+                  </div>
+                </div>
+                <span className="text-[#8B8B93] text-[10px] uppercase font-bold tracking-wider">Списание только после Ready</span>
               </div>
             </div>
 
-            <div className="pt-2">
-              <button
-                onClick={() => {
-                  onLaunchProduction(activeFlow.type);
-                }}
-                className="bg-[#111111] hover:bg-neutral-800 text-white font-bold py-3 px-6 rounded text-xs tracking-wider uppercase transition-all"
-              >
-                Создать {isKit ? 'production-комплект (Фото + Видео)' : '7 готовых фото'} →
-              </button>
-            </div>
+
           </div>
         )}
 
       </div>
 
       {/* 3. Right Column: Overview Drawer panel */}
-      <div className="w-full md:w-[280px] bg-neutral-50 border-t md:border-t-0 md:border-l border-[#D7D7D7] p-5 space-y-5 text-xs shrink-0 select-none">
-        <span className="text-[10px] font-mono text-[#888888] uppercase tracking-wider block">Черновик в прямом эфире</span>
+      <div className="w-full md:w-[280px] bg-[#0F0F11] border-t md:border-t-0 md:border-l border-[rgba(255,255,255,0.08)] p-5 space-y-5 text-xs shrink-0 select-none font-sans">
+        <span className="text-[10px] font-mono text-[#8B8B93] uppercase tracking-wider block">Черновик в прямом эфире</span>
 
         {/* Selected model overview details */}
         <div className="space-y-3">
-          <span className="block border-b border-[#D7D7D7] pb-1 font-bold text-neutral-500 uppercase tracking-widest text-[9px]">
+          <span className="block border-b border-[rgba(255,255,255,0.08)] pb-1.5 font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">
             AI Модель
           </span>
           {activeFlow.selectedModel ? (
-            <div className="bg-white p-2.5 border border-[#D7D7D7] rounded space-y-1">
-              <div className="font-semibold text-neutral-800">{activeFlow.selectedModel.name}</div>
-              <div className="text-[#555555] font-mono text-[10px]">
+            <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] space-y-1">
+              <div className="font-semibold text-[#F8F8F8]">{activeFlow.selectedModel.name}</div>
+              <div className="text-[#8B8B93] font-mono text-[10px]">
                 {activeFlow.selectedModel.gender} • {activeFlow.selectedModel.age} • {activeFlow.selectedModel.ethnotype}
               </div>
             </div>
           ) : (
-            <div className="text-[#888888] italic">Модель не зафиксирована</div>
+            <div className="text-[#8B8B93] italic">Модель не зафиксирована</div>
           )}
         </div>
 
         {/* Wardrobe files status */}
         <div className="space-y-3">
-          <span className="block border-b border-[#D7D7D7] pb-1 font-bold text-neutral-500 uppercase tracking-widest text-[9px]">
+          <span className="block border-b border-[rgba(255,255,255,0.08)] pb-1.5 font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">
             Комплект вещей
           </span>
           {activeFlow.selectedKit ? (
-            <div className="bg-white p-2.5 border border-[#D7D7D7] rounded space-y-1">
-              <div className="font-semibold text-neutral-800 max-w-[180px] truncate">{activeFlow.selectedKit.name}</div>
-              <div className="text-[#555555] font-mono text-[10px]">{activeFlow.selectedKit.items.length} фото в усадке</div>
+            <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] space-y-1">
+              <div className="font-semibold text-[#F8F8F8] max-w-[180px] truncate">{activeFlow.selectedKit.name}</div>
+              <div className="text-[#8B8B93] font-mono text-[10px]">{activeFlow.selectedKit.items.length} фото в усадке</div>
             </div>
           ) : (
-            <div className="text-[#888888] italic">Одежда не укомплектована</div>
+            <div className="text-[#8B8B93] italic">Одежда не укомплектована</div>
           )}
         </div>
 
         {/* Selected location details */}
         <div className="space-y-3">
-          <span className="block border-b border-[#D7D7D7] pb-1 font-bold text-neutral-500 uppercase tracking-widest text-[9px]">
+          <span className="block border-b border-[rgba(255,255,255,0.08)] pb-1.5 font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">
             Локация и свет
           </span>
           {activeFlow.selectedLocation ? (
-            <div className="bg-white p-2.5 border border-[#D7D7D7] rounded space-y-1.5 leading-normal">
-              <div className="font-semibold text-neutral-800">{activeFlow.selectedLocation}</div>
+            <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] space-y-1.5 leading-normal">
+              <div className="font-semibold text-[#F8F8F8]">{activeFlow.selectedLocation}</div>
               <div className="flex gap-1 flex-wrap">
-                <span className="bg-neutral-100 border text-[9px] px-1 rounded">{activeFlow.locationSettings.temperature}</span>
-                <span className="bg-neutral-100 border text-[9px] px-1 rounded">{activeFlow.locationSettings.hardness}</span>
-                <span className="bg-neutral-100 border text-[9px] px-1 rounded">{activeFlow.locationSettings.intensity}</span>
+                <span className="bg-[#1D1D21] border border-[rgba(255,255,255,0.05)] text-[9px] px-1.5 py-0.5 text-[#C9A35F] rounded">{activeFlow.locationSettings.temperature}</span>
+                <span className="bg-[#1D1D21] border border-[rgba(255,255,255,0.05)] text-[9px] px-1.5 py-0.5 text-[#C9A35F] rounded">{activeFlow.locationSettings.hardness}</span>
+                <span className="bg-[#1D1D21] border border-[rgba(255,255,255,0.05)] text-[9px] px-1.5 py-0.5 text-[#C9A35F] rounded">{activeFlow.locationSettings.intensity}</span>
               </div>
             </div>
           ) : (
-            <div className="text-[#888888] italic">География не выбрана</div>
+            <div className="text-[#8B8B93] italic">География не выбрана</div>
           )}
         </div>
 
         {/* pose direction check */}
         <div className="space-y-3">
-          <span className="block border-b border-[#D7D7D7] pb-1 font-bold text-neutral-500 uppercase tracking-widest text-[9px]">
+          <span className="block border-b border-[rgba(255,255,255,0.08)] pb-1.5 font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">
             Позы
           </span>
           {activeFlow.selectedPosePack ? (
-            <div className="bg-white p-2.5 border border-[#D7D7D7] rounded font-semibold text-neutral-800">
+            <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] font-semibold text-[#F8F8F8]">
               {activeFlow.selectedPosePack}
             </div>
           ) : (
-            <div className="text-[#888888] italic">Позы не зафиксированы</div>
+            <div className="text-[#8B8B93] italic">Позы не зафиксированы</div>
           )}
         </div>
 
         {/* missing indicators validator blocks */}
-        <div className="pt-4 border-t border-[#D7D7D7] space-y-2">
+        <div className="pt-4 border-t border-[rgba(255,255,255,0.08)] space-y-2 font-sans">
           {getMissingItemsList().length > 0 ? (
-            <div className="bg-[#FFFBEB] p-3 border border-[#F59E0B] rounded-lg space-y-1">
-              <span className="font-semibold text-amber-900 block font-sans">Требуется заполнить:</span>
-              <ul className="list-disc pl-4 text-[10.5px] font-mono text-amber-800 leading-normal">
+            <div className="bg-[rgba(201,120,120,0.08)] p-3 border border-[rgba(201,120,120,0.15)] rounded-[8px] space-y-1">
+              <span className="font-semibold text-[#C97878] block font-sans">Требуется заполнить:</span>
+              <ul className="list-disc pl-4 text-[10.5px] font-mono text-[#C97878] leading-normal font-sans">
                 {getMissingItemsList().map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
           ) : (
-            <div className="bg-[#ECFDF5] p-3 border border-[#10B981] rounded-lg text-emerald-800 font-semibold font-sans">
+            <div className="bg-[rgba(120,169,138,0.08)] p-3 border border-[#78A98A] rounded-[8px] text-[#78A98A] font-medium font-sans">
               ✓ Бриф заказа полностью укомплектован! Готов к списанию в очереди.
             </div>
           )}
         </div>
 
       </div>
+
+      {/* 4. Fixed Floating Bottom Confirmation Banner */}
+      {(() => {
+        let bottomBarAction: (() => void) | null = null;
+        let bottomBarText = '';
+        let bottomBarDescription = '';
+        let showBottomBar = false;
+
+        if (currentStepIndex === 0) {
+          if (activeFlow.selectedModel) {
+            showBottomBar = true;
+            bottomBarDescription = `Выбрана модель: ${activeFlow.selectedModel.name}`;
+            bottomBarAction = () => onStepChange(1);
+            bottomBarText = 'Выбрать эту модель и продолжить';
+          }
+        } else if (currentStepIndex === 1) {
+          if (wardrobeTab === 'upload') {
+            const isUploadReady = Object.values(uploadSlots).filter(Boolean).length >= 2;
+            if (isUploadReady) {
+              showBottomBar = true;
+              bottomBarDescription = `Комплект собран из ваших фото`;
+              bottomBarAction = handleSaveUploadedKit;
+              bottomBarText = 'Продолжить с этим комплектом';
+            }
+          } else {
+            if (activeFlow.selectedKit) {
+              showBottomBar = true;
+              bottomBarDescription = `Выбрана одежда: ${activeFlow.selectedKit.name}`;
+              bottomBarAction = () => onStepChange(2);
+              bottomBarText = 'Использовать этот комплект';
+            }
+          }
+        } else if (currentStepIndex === 2) {
+          showBottomBar = true;
+          bottomBarDescription = `Образ: ${activeFlow.lookName || 'Без названия'}`;
+          bottomBarAction = handleConfirmLook;
+          bottomBarText = 'Утвердить образ и продолжить';
+        } else if (currentStepIndex === 3) {
+          if (activeFlow.selectedLocation) {
+            showBottomBar = true;
+            bottomBarDescription = `Выбрана локация: ${activeFlow.selectedLocation}`;
+            bottomBarAction = () => onStepChange(4);
+            bottomBarText = 'Выбрать локацию и продолжить';
+          }
+        } else if (currentStepIndex === 4) {
+          if (activeFlow.selectedPosePack) {
+            showBottomBar = true;
+            bottomBarDescription = `Выбраны позы: ${activeFlow.selectedPosePack}`;
+            bottomBarAction = () => onStepChange(5);
+            bottomBarText = 'Выбрать этот пакет поз';
+          }
+        } else if (currentStepIndex === 5 && isKit) {
+          if (activeFlow.selectedVideoTemplate) {
+            showBottomBar = true;
+            bottomBarDescription = `Выбран шаблон: ${activeFlow.selectedVideoTemplate}`;
+            bottomBarAction = () => onStepChange(6);
+            bottomBarText = 'Выбрать этот видео-шаблон';
+          }
+        } else if ((currentStepIndex === 5 && !isKit) || currentStepIndex === 6) {
+          showBottomBar = true;
+          bottomBarDescription = `Бриф заполнен и готов`;
+          bottomBarAction = () => onLaunchProduction(activeFlow.type);
+          bottomBarText = `Создать ${isKit ? 'комплект (Фото + Видео)' : '7 готовых фото'}`;
+        }
+
+        if (!showBottomBar) return null;
+
+        return (
+          <div className="fixed bottom-[53px] md:bottom-0 left-0 md:left-[248px] right-0 md:right-[280px] z-40 bg-[#0A0A0C]/95 backdrop-blur-md border-t border-[rgba(255,255,255,0.08)] p-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C9A35F] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C9A35F]"></span>
+              </span>
+              <span className="text-xs font-semibold text-[#8B8B93]">Шаг {currentStepIndex + 1}:</span>
+              <span className="text-xs font-bold text-[#F8F8F8]">{bottomBarDescription}</span>
+            </div>
+            
+            <button
+              onClick={bottomBarAction || undefined}
+              className="w-full sm:w-auto h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm px-6 rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer shadow-lg"
+            >
+              <span>{bottomBarText}</span>
+              <ChevronRight size={16} className="ml-1" />
+            </button>
+          </div>
+        );
+      })()}
 
     </div>
   );

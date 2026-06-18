@@ -27,21 +27,37 @@ export default function App() {
   // ----------------------------------------
   // PORTFOLIO / PLATFORM WORKSPACE STATE
   // ----------------------------------------
-  const [photoCredits, setPhotoCredits] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_photo_credits');
-    return saved ? parseInt(saved, 10) : 0; // Starts with 0 default, tester can add in tariffs
+  const [creditBalance, setCreditBalance] = useState<number>(() => {
+    const saved = localStorage.getItem('modai_credit_balance');
+    if (saved !== null) {
+      return parseFloat(saved);
+    }
+    // Perform state migration from legacy variables if they exist
+    const legacyPhotoRaw = localStorage.getItem('modai_photo_credits');
+    const legacyKitRaw = localStorage.getItem('modai_kit_credits');
+    if (legacyPhotoRaw !== null || legacyKitRaw !== null) {
+      const legacyPhoto = legacyPhotoRaw ? parseFloat(legacyPhotoRaw) : 0;
+      const legacyKit = legacyKitRaw ? parseFloat(legacyKitRaw) : 0;
+      return (legacyPhoto * 0.5) + (legacyKit * 1.0);
+    }
+    // Default starting balance of 1.0 credit per user instructions
+    return 1.0;
   });
-  const [kitCredits, setKitCredits] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_kit_credits');
-    return saved ? parseInt(saved, 10) : 0; // Starts with 0 default
-  });
-  const [reservedPhotoCredits, setReservedPhotoCredits] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_res_photo_credits');
-    return saved ? parseInt(saved, 10) : 0;
-  });
-  const [reservedKitCredits, setReservedKitCredits] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_res_kit_credits');
-    return saved ? parseInt(saved, 10) : 0;
+
+  const [reservedCredits, setReservedCredits] = useState<number>(() => {
+    const saved = localStorage.getItem('modai_reserved_credits');
+    if (saved !== null) {
+      return parseFloat(saved);
+    }
+    // Perform state migration from legacy reserved variables if they exist
+    const legacyPhotoResRaw = localStorage.getItem('modai_res_photo_credits');
+    const legacyKitResRaw = localStorage.getItem('modai_res_kit_credits');
+    if (legacyPhotoResRaw !== null || legacyKitResRaw !== null) {
+      const legacyPhotoRes = legacyPhotoResRaw ? parseFloat(legacyPhotoResRaw) : 0;
+      const legacyKitRes = legacyKitResRaw ? parseFloat(legacyKitResRaw) : 0;
+      return (legacyPhotoRes * 0.5) + (legacyKitRes * 1.0);
+    }
+    return 0;
   });
 
   const [savedModels, setSavedModels] = useState<Model[]>(() => {
@@ -127,10 +143,8 @@ export default function App() {
     localStorage.setItem('modai_auth', isAuthenticated.toString());
     localStorage.setItem('modai_email', userEmail);
     localStorage.setItem('modai_lang', interfaceLanguage);
-    localStorage.setItem('modai_photo_credits', photoCredits.toString());
-    localStorage.setItem('modai_kit_credits', kitCredits.toString());
-    localStorage.setItem('modai_res_photo_credits', reservedPhotoCredits.toString());
-    localStorage.setItem('modai_res_kit_credits', reservedKitCredits.toString());
+    localStorage.setItem('modai_credit_balance', creditBalance.toString());
+    localStorage.setItem('modai_reserved_credits', reservedCredits.toString());
     localStorage.setItem('modai_models', JSON.stringify(savedModels));
     localStorage.setItem('modai_wardrobe_items', JSON.stringify(wardrobeItems));
     localStorage.setItem('modai_wardrobe_kits', JSON.stringify(wardrobeKits));
@@ -140,7 +154,7 @@ export default function App() {
     localStorage.setItem('modai_active_flow', activeProductionFlow ? JSON.stringify(activeProductionFlow) : '');
   }, [
     isAuthenticated, userEmail, interfaceLanguage,
-    photoCredits, kitCredits, reservedPhotoCredits, reservedKitCredits,
+    creditBalance, reservedCredits,
     savedModels, wardrobeItems, wardrobeKits, looks, results, creditLedger,
     activeProductionFlow
   ]);
@@ -162,10 +176,8 @@ export default function App() {
 
   const handleClearStorage = () => {
     localStorage.clear();
-    setPhotoCredits(0);
-    setKitCredits(0);
-    setReservedPhotoCredits(0);
-    setReservedKitCredits(0);
+    setCreditBalance(1.0); // Reset to standard starting balance
+    setReservedCredits(0);
     setSavedModels(INITIAL_MODELS);
     setWardrobeItems(INITIAL_WARDROBE_ITEMS);
     setWardrobeKits(INITIAL_WARDROBE_KITS);
@@ -178,11 +190,7 @@ export default function App() {
   };
 
   const incrementCredits = (type: 'photo' | 'kit', count: number) => {
-    if (type === 'photo') {
-      setPhotoCredits((prev) => prev + count);
-    } else {
-      setKitCredits((prev) => prev + count);
-    }
+    setCreditBalance((prev) => prev + count);
   };
 
   const addLedgerEntry = (event: string, type: 'photo' | 'kit', count: number, note: string) => {
@@ -203,7 +211,7 @@ export default function App() {
 
   // Click on "Новый продакшен" shortcut
   const handleNewProductionClick = () => {
-    const hasAnyCredits = photoCredits > 0 || kitCredits > 0;
+    const hasAnyCredits = creditBalance >= 0.5;
     if (!hasAnyCredits) {
       // If 0 credits, trigger blocked access modal prompt
       setShowAccessModal(true);
@@ -217,11 +225,8 @@ export default function App() {
 
   const handleStartFlow = (type: 'photo' | 'kit') => {
     // Check if the user has enough credits of that type
-    if (type === 'photo' && photoCredits < 1) {
-      setShowInsufficientModal(true);
-      return;
-    }
-    if (type === 'kit' && kitCredits < 1) {
+    const cost = type === 'photo' ? 0.5 : 1.0;
+    if (creditBalance < cost) {
       setShowInsufficientModal(true);
       return;
     }
@@ -272,7 +277,7 @@ export default function App() {
       const defaultModel = savedModels[0] || INITIAL_MODELS[0];
       const defaultKit = wardrobeKits[0] || INITIAL_WARDROBE_KITS[0];
       
-      const typeChoice: 'photo' | 'kit' = kitCredits > 0 ? 'kit' : 'photo';
+      const typeChoice: 'photo' | 'kit' = creditBalance >= 1.0 ? 'kit' : 'photo';
       onStartFlowWithPreset(typeChoice, defaultModel, defaultKit, 'Ускоренная съемка образов');
       return;
     }
@@ -280,16 +285,13 @@ export default function App() {
     const matchedModel = savedModels.find((m) => m.id === look.modelId) || savedModels[0];
     const matchedKit = wardrobeKits.find((k) => k.id === look.kitId) || wardrobeKits[0];
 
-    const typeChoice: 'photo' | 'kit' = kitCredits > 0 ? 'kit' : 'photo';
+    const typeChoice: 'photo' | 'kit' = creditBalance >= 1.0 ? 'kit' : 'photo';
     onStartFlowWithPreset(typeChoice, matchedModel, matchedKit, look.name);
   };
 
   const onStartFlowWithPreset = (type: 'photo' | 'kit', model: Model, kit: WardrobeKit, lookName: string) => {
-    if (type === 'photo' && photoCredits < 1) {
-      setShowInsufficientModal(true);
-      return;
-    }
-    if (type === 'kit' && kitCredits < 1) {
+    const cost = type === 'photo' ? 0.5 : 1.0;
+    if (creditBalance < cost) {
       setShowInsufficientModal(true);
       return;
     }
@@ -314,27 +316,22 @@ export default function App() {
     setLooks(looks.filter((x) => x.id !== lookId));
   };
 
+  const handleUpdateLookName = (lookId: string, newName: string) => {
+    setLooks(looks.map((l) => l.id === lookId ? { ...l, name: newName } : l));
+  };
+
   // Final review checkout trigger launch!
   const handleLaunchProduction = (reserveType: 'photo' | 'kit') => {
     if (!activeProductionFlow || !activeProductionFlow.selectedModel || !activeProductionFlow.selectedKit) return;
 
-    if (reserveType === 'photo') {
-      if (photoCredits < 1) {
-        alert('Недостаточно доступных фото-кредитов для запуска.');
-        return;
-      }
-      setPhotoCredits((prev) => prev - 1);
-      setReservedPhotoCredits((prev) => prev + 1);
-      addLedgerEntry('reserve', 'photo', 1, `Блокировка 1 кр. под запуск "${activeProductionFlow.lookName}"`);
-    } else {
-      if (kitCredits < 1) {
-        alert('Недостаточно доступных комплект-кредитов для запуска.');
-        return;
-      }
-      setKitCredits((prev) => prev - 1);
-      setReservedKitCredits((prev) => prev + 1);
-      addLedgerEntry('reserve', 'kit', 1, `Блокировка 1 кр. под запуск "${activeProductionFlow.lookName}"`);
+    const cost = reserveType === 'photo' ? 0.5 : 1.0;
+    if (creditBalance < cost) {
+      alert('Недостаточно доступных кредитов для запуска.');
+      return;
     }
+    setCreditBalance((prev) => prev - cost);
+    setReservedCredits((prev) => prev + cost);
+    addLedgerEntry('reserve', reserveType, cost, `Блокировка ${cost.toString().replace('.', ',')} кр. под запуск "${activeProductionFlow.lookName}"`);
 
     // Insert to active running results database
     const newResult: ResultItem = {
@@ -371,13 +368,9 @@ export default function App() {
           
           // If moving from process reservation state to finished ready state, officially spend the credits
           if (status === 'ready' && oldStatus !== 'ready') {
-            if (r.type === 'photo') {
-              setReservedPhotoCredits((p) => Math.max(0, p - 1));
-              addLedgerEntry('spend_confirmed', 'photo', 1, `Подтверждение списания 1 фото-кредита для пака "${r.name}"`);
-            } else {
-              setReservedKitCredits((k) => Math.max(0, k - 1));
-              addLedgerEntry('spend_confirmed', 'kit', 1, `Подтверждение списания 1 комплект-кредита для пака "${r.name}"`);
-            }
+            const cost = r.type === 'photo' ? 0.5 : 1.0;
+            setReservedCredits((k) => Math.max(0, k - cost));
+            addLedgerEntry('spend_confirmed', r.type, cost, `Подтверждение списания ${cost.toString().replace('.', ',')} кр. для пака "${r.name}"`);
           }
           return nextItem;
         }
@@ -388,15 +381,10 @@ export default function App() {
 
   const handleRefundCredit = (result: ResultItem) => {
     // Release reserve, return to cash balance
-    if (result.type === 'photo') {
-      setReservedPhotoCredits((p) => Math.max(0, p - 1));
-      setPhotoCredits((p) => p + 1);
-      addLedgerEntry('reserve_release', 'photo', 1, `Резерв снят: Возврат 1 фото-кредита за тикет "${result.name}"`);
-    } else {
-      setReservedKitCredits((k) => Math.max(0, k - 1));
-      setKitCredits((k) => k + 1);
-      addLedgerEntry('reserve_release', 'kit', 1, `Резерв снят: Возврат 1 комплект-кредита за тикет "${result.name}"`);
-    }
+    const cost = result.type === 'photo' ? 0.5 : 1.0;
+    setReservedCredits((p) => Math.max(0, p - cost));
+    setCreditBalance((p) => p + cost);
+    addLedgerEntry('reserve_release', result.type, cost, `Резерв снят: Возврат ${cost.toString().replace('.', ',')} кр. за тикет "${result.name}"`);
 
     handleUpdateResultStatus(result.id, 'failed');
   };
@@ -466,8 +454,7 @@ export default function App() {
       case 'create':
         return (
           <CreatePage
-            photoCredits={photoCredits}
-            kitCredits={kitCredits}
+            creditBalance={creditBalance}
             savedModels={savedModels}
             wardrobeItems={wardrobeItems}
             wardrobeKits={wardrobeKits}
@@ -489,8 +476,9 @@ export default function App() {
             looks={looks}
             onStartProductionWithLook={handleStartProductionWithLook}
             onDeleteLook={handleDeleteLook}
+            onUpdateLookName={handleUpdateLookName}
             onNavigateToTariffs={() => setCurrentTab('tariffs')}
-            hasCredits={photoCredits > 0 || kitCredits > 0}
+            hasCredits={creditBalance >= 0.5}
           />
         );
       case 'results':
@@ -501,8 +489,9 @@ export default function App() {
             onRefundCredit={handleRefundCredit}
             onManualFixComplete={handleManualFixComplete}
             onGrantCompensation={(typeChoice) => {
-              incrementCredits(typeChoice, 1);
-              addLedgerEntry('support_compensation', typeChoice, 1, 'Ручное начисление компенсации');
+              const count = typeChoice === 'photo' ? 0.5 : 1.0;
+              setCreditBalance((p) => p + count);
+              addLedgerEntry('support_compensation', typeChoice, count, 'Ручное начисление компенсации');
             }}
             onConfirmSpendDirect={(res) => {
               handleUpdateResultStatus(res.id, 'ready');
@@ -516,7 +505,7 @@ export default function App() {
               const matchedModel = (matchingLook ? savedModels.find((m) => m.id === matchingLook.modelId) : null) || (resultItem ? savedModels.find((m) => m.name === resultItem.modelName) : null) || savedModels[0];
               const matchedKit = (matchingLook ? wardrobeKits.find((k) => k.id === matchingLook.kitId) : null) || (resultItem ? wardrobeKits.find((k) => k.name === resultItem.lookName || resultItem.name.includes(k.name)) : null) || wardrobeKits[0];
               
-              const typeChoice: 'photo' | 'kit' = resultItem ? (resultItem.type as 'photo' | 'kit') : (kitCredits > 0 ? 'kit' : 'photo');
+              const typeChoice: 'photo' | 'kit' = resultItem ? (resultItem.type as 'photo' | 'kit') : (creditBalance >= 1.0 ? 'kit' : 'photo');
               const finalLookName = matchingLook ? matchingLook.name : (resultItem ? resultItem.lookName : 'Новый образ');
               
               setActiveProductionFlow({
@@ -542,10 +531,8 @@ export default function App() {
       case 'tariffs':
         return (
           <TariffsPage
-            photoCredits={photoCredits}
-            kitCredits={kitCredits}
-            reservedPhotoCredits={reservedPhotoCredits}
-            reservedKitCredits={reservedKitCredits}
+            creditBalance={creditBalance}
+            reservedCredits={reservedCredits}
             ledger={creditLedger}
             addLedgerEntry={addLedgerEntry}
             incrementCredits={incrementCredits}
@@ -553,14 +540,39 @@ export default function App() {
               handleStartFlow(typeChosen);
               setCurrentTab('create');
             }}
+            onAdminAction={(action, amount, customEvent) => {
+              if (action === 'add' && amount) {
+                setCreditBalance((prev) => prev + amount);
+                const eventType = customEvent || 'grant';
+                const note = eventType === 'marketing_grant' 
+                  ? 'Маркетинговые промо-кредиты (начисление)' 
+                  : eventType === 'support_compensation'
+                  ? 'Компенсация техподдержки за технический перезапуск'
+                  : `Ручное начисление ${amount.toString().replace('.', ',')} кр. администратором`;
+                addLedgerEntry(eventType, 'photo', amount, note);
+              } else if (action === 'spend' && amount) {
+                if (amount === creditBalance) {
+                  setCreditBalance(0);
+                  addLedgerEntry('support_hold', 'photo', creditBalance, 'Полное списание баланса администратором');
+                } else {
+                  setCreditBalance((prev) => Math.max(0, prev - amount));
+                  addLedgerEntry('support_hold', 'photo', amount, `Ручное списание ${amount.toString().replace('.', ',')} кр. администратором`);
+                }
+              } else if (action === 'return_reserve') {
+                if (reservedCredits > 0) {
+                  setCreditBalance((prev) => prev + reservedCredits);
+                  addLedgerEntry('reserve_release', 'photo', reservedCredits, `Возврат оставшегося резерва в объеме ${reservedCredits.toString().replace('.', ',')} кр.`);
+                  setReservedCredits(0);
+                }
+              }
+            }}
           />
         );
       case 'settings':
         return (
           <SettingsPage
             userEmail={userEmail}
-            photoCredits={photoCredits}
-            kitCredits={kitCredits}
+            creditBalance={creditBalance}
             ledger={creditLedger}
             onLogout={handleLogout}
             onClearStorage={handleClearStorage}
@@ -580,78 +592,69 @@ export default function App() {
 
   // Loaded logged-in desktop view
   return (
-    <div className="min-h-screen md:h-screen bg-[#F6F6F6] text-[#111111] flex flex-col md:flex-row font-sans overflow-x-hidden md:overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-[#050505] text-[#F8F8F8] flex flex-col lg:flex-row font-sans overflow-x-hidden lg:overflow-hidden">
       
       {/* Sidebar - responsive desktop drawer / collapses to rail on iPad limits */}
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
-        photoCredits={photoCredits}
-        kitCredits={kitCredits}
-        reservedPhotoCredits={reservedPhotoCredits}
-        reservedKitCredits={reservedKitCredits}
+        creditBalance={creditBalance}
+        reservedCredits={reservedCredits}
         userEmail={userEmail}
         onLogout={handleLogout}
         onNewProductionClick={handleNewProductionClick}
       />
 
       {/* Main viewport Container space */}
-      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0 md:h-full">
+      <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0 lg:h-full bg-[#050505]">
         
         {/* Mobile sticky top bar header header */}
-        <div className="md:hidden bg-white border-b border-[#D7D7D7] p-4 flex items-center justify-between">
+        <div className="lg:hidden bg-[#0F0F11] border-b border-[rgba(255,255,255,0.08)] p-4 flex items-center justify-between">
           <div>
-            <span className="font-bold text-sm tracking-tight">ModAI Team</span>
-            <span className="block text-[8px] font-mono text-neutral-400">MOBILE WORK cabinet</span>
+            <span className="font-display font-medium text-lg tracking-tight text-[#F8F8F8]">ModaAI</span>
           </div>
           
-          <button
-            onClick={handleNewProductionClick}
-            className="bg-[#111111] text-white p-2 rounded-full"
-            title="Новый продакшен"
-          >
-            <Camera size={15} />
-          </button>
+          {/* Hidden on mobile top bar per request */}
         </div>
 
         {/* Content switchboards nested rendering */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-[#050505]">
           {renderTabContent()}
         </div>
 
         {/* Mobile Navigation fallback bar bottom */}
-        <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#D7D7D7] grid grid-cols-5 text-center p-1.5 z-40 text-[10px]">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-[#0F0F11] border-t border-[rgba(255,255,255,0.08)] grid grid-cols-5 text-center p-1.5 z-40 text-[10px]">
           <button
             onClick={() => setCurrentTab('create')}
-            className={`flex flex-col items-center gap-0.5 py-1 ${currentTab === 'create' ? 'text-[#111111] font-bold' : 'text-neutral-400'}`}
+            className={`flex flex-col items-center gap-0.5 py-1.5 cursor-pointer ${currentTab === 'create' ? 'text-[#C9A35F] font-bold' : 'text-[#8B8B93]'}`}
           >
             <Sparkles size={16} />
             <span>Создать</span>
           </button>
           <button
             onClick={() => setCurrentTab('looks')}
-            className={`flex flex-col items-center gap-0.5 py-1 ${currentTab === 'looks' ? 'text-[#111111] font-bold' : 'text-neutral-400'}`}
+            className={`flex flex-col items-center gap-0.5 py-1.5 cursor-pointer ${currentTab === 'looks' ? 'text-[#C9A35F] font-bold' : 'text-[#8B8B93]'}`}
           >
             <Users size={16} />
             <span>Образы</span>
           </button>
           <button
             onClick={() => setCurrentTab('results')}
-            className={`flex flex-col items-center gap-0.5 py-1 ${currentTab === 'results' ? 'text-[#111111] font-bold' : 'text-neutral-400'}`}
+            className={`flex flex-col items-center gap-0.5 py-1.5 cursor-pointer ${currentTab === 'results' ? 'text-[#C9A35F] font-bold' : 'text-[#8B8B93]'}`}
           >
             <LayoutGrid size={16} />
             <span>Результаты</span>
           </button>
           <button
             onClick={() => setCurrentTab('tariffs')}
-            className={`flex flex-col items-center gap-0.5 py-1 ${currentTab === 'tariffs' ? 'text-[#111111] font-bold' : 'text-neutral-400'}`}
+            className={`flex flex-col items-center gap-0.5 py-1.5 cursor-pointer ${currentTab === 'tariffs' ? 'text-[#C9A35F] font-bold' : 'text-[#8B8B93]'}`}
           >
             <Coins size={16} />
             <span>Тарифы</span>
           </button>
           <button
             onClick={() => setCurrentTab('settings')}
-            className={`flex flex-col items-center gap-0.5 py-1 ${currentTab === 'settings' ? 'text-[#111111] font-bold' : 'text-neutral-400'}`}
+            className={`flex flex-col items-center gap-0.5 py-1.5 cursor-pointer ${currentTab === 'settings' ? 'text-[#C9A35F] font-bold' : 'text-[#8B8B93]'}`}
           >
             <Settings size={16} />
             <span>Настройки</span>
@@ -666,12 +669,12 @@ export default function App() {
       
       {/* 1. Locked Access Modal: "Сначала выберите тариф" */}
       {showAccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 font-sans">
-          <div className="bg-white border-2 border-[#111111] rounded-lg p-6 max-w-sm w-full space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-sans">
+          <div className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] rounded-[12px] p-6 max-w-sm w-full space-y-4 shadow-2xl">
             <div className="text-center space-y-2">
-              <AlertOctagon className="text-neutral-800 mx-auto" size={40} />
-              <h3 className="text-lg font-bold">Сначала выберите тариф</h3>
-              <p className="text-xs text-neutral-500 leading-relaxed">
+              <AlertOctagon className="text-[#C9A35F] mx-auto animate-pulse" size={40} />
+              <h3 className="text-lg font-display font-medium text-[#F8F8F8]">Сначала выберите тариф</h3>
+              <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
                 Чтобы запустить создание нового продакшена AI-фотосессии, сначала выберите и оплатите подходящий пакет кредитов в Вашем кабинете.
               </p>
             </div>
@@ -687,13 +690,13 @@ export default function App() {
                     document.getElementById('checkout_container')?.scrollIntoView({ behavior: 'smooth' });
                   }, 100);
                 }}
-                className="w-full bg-[#111111] hover:bg-neutral-800 text-white font-semibold text-xs py-2.5 rounded transition-colors text-center"
+                className="w-full h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer"
               >
-                Смотреть доступные тарифы →
+                Смотреть доступные тарифы
               </button>
               <button
                 onClick={() => setShowAccessModal(false)}
-                className="w-full border border-[#D7D7D7] hover:bg-neutral-100 text-[#111111] font-semibold text-xs py-2.5 rounded transition-colors text-center"
+                className="w-full border border-[rgba(255,255,255,0.12)] hover:bg-[#1D1D21] text-[#F8F8F8] font-semibold text-xs py-2.5 rounded-[6px] transition-colors text-center cursor-pointer"
               >
                 Отмена
               </button>
@@ -704,12 +707,12 @@ export default function App() {
 
       {/* 2. Insufficient Credits Modal */}
       {showInsufficientModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 font-sans">
-          <div className="bg-white border-2 border-[#111111] rounded-lg p-6 max-w-sm w-full space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-sans">
+          <div className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] rounded-[12px] p-6 max-w-sm w-full space-y-4 shadow-2xl">
             <div className="text-center space-y-2">
-              <AlertOctagon className="text-neutral-800 mx-auto" size={40} />
-              <h3 className="text-lg font-bold">Недостаточно кредитов</h3>
-              <p className="text-xs text-neutral-500 leading-relaxed">
+              <AlertOctagon className="text-[#C9A35F] mx-auto" size={40} />
+              <h3 className="text-lg font-display font-medium text-[#F8F8F8]">Недостаточно кредитов</h3>
+              <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
                 Для выбранного типа съемки у Вас на балансе нет подходящего типа кредита. Пожалуйста, пополните баланс в тарифах.
               </p>
             </div>
@@ -720,13 +723,13 @@ export default function App() {
                   setShowInsufficientModal(false);
                   setCurrentTab('tariffs');
                 }}
-                className="w-full bg-[#111111] hover:bg-neutral-800 text-white font-semibold text-xs py-2.5 rounded transition-colors text-center"
+                className="w-full h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer"
               >
-                Смотреть подходящие пакеты →
+                Смотреть подходящие пакеты
               </button>
               <button
                 onClick={() => setShowInsufficientModal(false)}
-                className="w-full border border-[#D7D7D7] hover:bg-neutral-100 text-[#111111] font-semibold text-xs py-2.5 rounded transition-colors text-center"
+                className="w-full border border-[rgba(255,255,255,0.12)] hover:bg-[#1D1D21] text-[#F8F8F8] font-semibold text-xs py-2.5 rounded-[6px] transition-colors text-center cursor-pointer"
               >
                 Изучить имеющиеся
               </button>

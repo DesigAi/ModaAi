@@ -101,19 +101,19 @@ export default function WardrobePage({
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 font-sans text-[#111111]">
+    <div className="p-6 max-w-6xl mx-auto space-y-6 font-sans text-[#F8F8F8]">
       
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#D7D7D7] pb-5 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-5 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Гардероб и комплекты</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="text-2xl font-display font-medium tracking-tight text-[#F8F8F8]">Гардероб и комплекты</h1>
+          <p className="text-sm text-[#8B8B93] mt-1">
             Загружайте фотографии одежды, классифицируйте ракурсы съемки и собирайте готовые комплекты.
           </p>
         </div>
         <button
           onClick={() => setShowKitBuilder(!showKitBuilder)}
-          className="bg-[#111111] hover:bg-neutral-800 text-white font-medium text-xs py-2 px-4 rounded-lg flex items-center gap-1.5 self-start"
+          className="h-[36px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-medium text-xs px-4 rounded-[6px] flex items-center gap-1.5 self-start transition-colors cursor-pointer"
         >
           <FolderHeart size={14} />
           <span>Собрать новый комплект</span>
@@ -122,12 +122,12 @@ export default function WardrobePage({
 
       {/* Kit Constructor Sandbox Dialog */}
       {showKitBuilder && (
-        <div className="bg-neutral-50 border-2 border-[#111111] p-5 rounded-lg space-y-4">
+        <div className="bg-[#0F0F11] border-2 border-[#C9A35F] p-5 rounded-[8px] space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-sm">Конструктор комплекта вещей</h3>
+            <h3 className="font-display font-medium text-[#F8F8F8] text-sm">Конструктор комплекта вещей</h3>
             <button
               onClick={() => setShowKitBuilder(false)}
-              className="text-[#555555] hover:text-[#111111] text-xs underline"
+              className="text-[#8B8B93] hover:text-[#F8F8F8] text-xs underline cursor-pointer transition-colors"
             >
               Закрыть
             </button>
@@ -136,7 +136,7 @@ export default function WardrobePage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                <label className="block text-xs font-semibold text-[#B5B5BC] mb-1.5">
                   Название комплекта вещей в каталоге
                 </label>
                 <input
@@ -144,16 +144,16 @@ export default function WardrobePage({
                   placeholder="Например: Летний костюм с шортами и очками"
                   value={newKitName}
                   onChange={(e) => setNewKitName(e.target.value)}
-                  className="w-full bg-white border border-[#D7D7D7] p-2 text-xs rounded"
+                  className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.12)] p-2.5 text-xs text-[#F8F8F8] rounded-[6px] focus:outline-none focus:border-[#C9A35F]"
                 />
               </div>
 
-              <div className="p-3 bg-white border border-[#D7D7D7] rounded text-xs space-y-1">
-                <p className="text-neutral-500 text-[10px] uppercase font-bold">Выбрано вещей: {selectedItemIds.length}</p>
+              <div className="p-3 bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] text-xs space-y-1.5">
+                <p className="text-[#8B8B93] text-[10px] uppercase font-bold tracking-wider">Выбрано вещей: {selectedItemIds.length}</p>
                 {selectedItemIds.length === 0 ? (
-                  <p className="text-neutral-400 italic">Сначала выберите вещи из списка справа.</p>
+                  <p className="text-[#8B8B93] italic">Сначала выберите вещи из списка справа.</p>
                 ) : (
-                  <ul className="list-disc pl-4 space-y-0.5 font-mono text-[11px] text-neutral-700">
+                  <ul className="list-disc pl-4 space-y-0.5 font-mono text-[11px] text-[#B5B5BC]">
                     {wardrobeItems
                       .filter((x) => selectedItemIds.includes(x.id))
                       .map((x) => (
@@ -165,7 +165,7 @@ export default function WardrobePage({
 
               <button
                 onClick={handleCreateKit}
-                className="bg-[#111111] hover:bg-neutral-800 text-white text-xs font-semibold py-2 px-4 rounded"
+                className="w-full h-[36px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] text-xs font-medium rounded-[6px] transition-colors cursor-pointer"
               >
                 Сохранить комплект одежды
               </button>
@@ -173,8 +173,8 @@ export default function WardrobePage({
 
             {/* Select items lists from library */}
             <div className="space-y-2">
-              <span className="block text-xs font-bold text-neutral-500 uppercase">Доступные вещи в библиотеке</span>
-              <div className="max-h-[160px] overflow-y-auto border border-[#D7D7D7] bg-white rounded divide-y divide-[#F1F1F1]">
+              <span className="block text-xs font-bold text-[#8B8B93] uppercase tracking-wider">Доступные вещи в библиотеке</span>
+              <div className="max-h-[160px] overflow-y-auto border border-[rgba(255,255,255,0.08)] bg-[#16161A] rounded-[6px] divide-y divide-[rgba(255,255,255,0.05)]">
                 {wardrobeItems
                   .filter((itm) => itm.usageStatus !== 'hidden')
                   .map((item) => {
@@ -183,17 +183,17 @@ export default function WardrobePage({
                       <div
                         key={item.id}
                         onClick={() => toggleSelectToKit(item.id)}
-                        className={`p-2 font-sans text-xs transition-colors cursor-pointer flex items-center justify-between ${isSelected ? 'bg-neutral-100 font-semibold' : 'hover:bg-neutral-50'}`}
+                        className={`p-2.5 font-sans text-xs transition-colors cursor-pointer flex items-center justify-between ${isSelected ? 'bg-[rgba(201,163,95,0.12)] text-[#F8F8F8] font-semibold' : 'hover:bg-[#1D1D21] text-[#B5B5BC]'}`}
                       >
                         <div>
                           <span>{item.name}</span>
-                          <span className="text-[10px] text-neutral-400 block font-mono">Category: {item.category} • {item.sideType}</span>
+                          <span className="text-[10px] text-[#8B8B93] block font-mono">Category: {item.category} • {item.sideType}</span>
                         </div>
                         <input
                           type="checkbox"
                           checked={isSelected}
                           readOnly
-                          className="rounded border-[#D7D7D7] text-black"
+                          className="mr-1 accent-[#C9A35F]"
                         />
                       </div>
                     );
@@ -205,7 +205,7 @@ export default function WardrobePage({
       )}
 
       {/* Tabs and filter panel */}
-      <div className="flex border-b border-[#D7D7D7] -mb-1 overflow-x-auto gap-4">
+      <div className="flex border-b border-[rgba(255,255,255,0.08)] -mb-1 overflow-x-auto gap-4">
         {[
           { id: 'all', label: 'Все элементы' },
           { id: 'items', label: 'Только вещи' },
@@ -215,7 +215,7 @@ export default function WardrobePage({
           <button
             key={tab.id}
             onClick={() => setFilterType(tab.id as any)}
-            className={`pb-2 px-1 text-sm font-semibold border-b-2 transition-colors ${filterType === tab.id ? 'border-[#111111] text-[#111111]' : 'border-transparent text-neutral-400 hover:text-neutral-600'}`}
+            className={`pb-2.5 px-1 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${filterType === tab.id ? 'border-[#C9A35F] text-[#C9A35F]' : 'border-transparent text-[#8B8B93] hover:text-[#F8F8F8]'}`}
           >
             {tab.label}
           </button>
@@ -227,7 +227,7 @@ export default function WardrobePage({
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setActiveItemCategory('all')}
-            className={`px-3 py-1 text-xs border rounded-full transition-all ${activeItemCategory === 'all' ? 'bg-[#111111] text-white' : 'bg-white border-[#D7D7D7] hover:bg-neutral-50'}`}
+            className={`px-3 py-1 text-xs border rounded-full transition-all cursor-pointer ${activeItemCategory === 'all' ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F]' : 'bg-[#16161A] border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:bg-[#1D1D21]'}`}
           >
             Все типы вещи
           </button>
@@ -235,7 +235,7 @@ export default function WardrobePage({
             <button
               key={cat.value}
               onClick={() => setActiveItemCategory(cat.value)}
-              className={`px-3 py-1 text-xs border rounded-full transition-all ${activeItemCategory === cat.value ? 'bg-[#111111] text-white' : 'bg-white border-[#D7D7D7] hover:bg-neutral-50'}`}
+              className={`px-3 py-1 text-xs border rounded-full transition-all cursor-pointer ${activeItemCategory === cat.value ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F]' : 'bg-[#16161A] border-[rgba(255,255,255,0.08)] text-[#B5B5BC] hover:bg-[#1D1D21]'}`}
             >
               {cat.label}
             </button>
@@ -249,29 +249,29 @@ export default function WardrobePage({
         {/* Kits Sections */}
         {filteredKits.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Комплекты одежды в работе ({filteredKits.length})</h3>
+            <h3 className="text-xs font-bold text-[#8B8B93] uppercase tracking-widest">Комплекты одежды в работе ({filteredKits.length})</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredKits.map((kit) => (
                 <div
                   key={kit.id}
-                  className="bg-white border border-[#D7D7D7] rounded-lg p-4 space-y-4 hover:border-black transition-all relative group"
+                  className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-4 space-y-4 hover:border-[#C9A35F] transition-all relative group"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-sm font-bold text-[#111111]">{kit.name}</h4>
-                      <span className="text-[10px] p-1 font-mono text-neutral-400">{kit.createdAt} • {kit.items.length} фото вещей</span>
+                      <h4 className="text-sm font-display font-medium text-[#F8F8F8]">{kit.name}</h4>
+                      <span className="text-[10px] font-mono text-[#8B8B93] block mt-0.5">{kit.createdAt} • {kit.items.length} фото вещей</span>
                     </div>
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => onToggleHideKit(kit.id)}
-                        className="p-1.5 border border-[#D7D7D7] text-neutral-500 rounded hover:bg-neutral-50"
-                        title={kit.usageStatus === 'hidden' ? 'Восстановиться в библиотеке' : 'Скрыть из библиотеки'}
+                        className="p-1.5 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#F8F8F8] transition-colors rounded-[4px]"
+                        title={kit.usageStatus === 'hidden' ? 'Восстановить в библиотеке' : 'Скрыть из библиотеки'}
                       >
                         {kit.usageStatus === 'hidden' ? <Eye size={12} /> : <EyeOff size={12} />}
                       </button>
                       <button
                         onClick={() => onDeleteKit(kit.id)}
-                        className="p-1.5 border border-[#D7D7D7] hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded"
+                        className="p-1.5 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:bg-[rgba(201,120,120,0.12)] hover:text-[#C97878] hover:border-[rgba(201,120,120,0.2)] rounded-[4px] transition-colors"
                         title="Удалить навсегда"
                       >
                         <Trash2 size={12} />
@@ -280,15 +280,15 @@ export default function WardrobePage({
                   </div>
 
                   {/* Wireframe components list inside kit */}
-                  <div className="grid grid-cols-4 gap-1.5 bg-[#F1F1F1] p-2.5 rounded border border-[#D7D7D7]">
+                  <div className="grid grid-cols-4 gap-1.5 bg-[#16161A] p-2.5 rounded-[6px] border border-[rgba(255,255,255,0.08)]">
                     {kit.items.map((itm, index) => (
-                      <div key={index} className="aspect-square bg-white border border-[#D7D7D7] rounded flex flex-col items-center justify-center text-center p-1 relative">
-                        <span className="text-[9px] font-mono font-bold leading-none scale-90">{itm.sideType}</span>
-                        <Shirt size={10} className="text-neutral-400 mt-1" />
+                      <div key={index} className="aspect-square bg-[#1A1A1D] border border-[rgba(255,255,255,0.05)] rounded-[4px] flex flex-col items-center justify-center text-center p-1 relative">
+                        <span className="text-[9px] font-mono font-bold leading-none scale-90 text-[#C9A35F]">{itm.sideType}</span>
+                        <Shirt size={10} className="text-[#8B8B93] mt-1" />
                       </div>
                     ))}
                     {kit.items.length === 0 && (
-                      <span className="text-[10px] text-neutral-400 italic col-span-4 block text-center">Пустой комплект</span>
+                      <span className="text-[10px] text-[#8B8B93] italic col-span-4 block text-center">Пустой комплект</span>
                     )}
                   </div>
                 </div>
@@ -300,16 +300,16 @@ export default function WardrobePage({
         {/* Individual Items section */}
         {filteredItems.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Индивидуальные кадры заготовок ({filteredItems.length})</h3>
+            <h3 className="text-xs font-bold text-[#8B8B93] uppercase tracking-widest">Индивидуальные кадры заготовок ({filteredItems.length})</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {filteredItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white border border-[#D7D7D7] rounded-lg p-3 flex flex-col justify-between hover:border-black transition-all relative group"
+                  className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-3 flex flex-col justify-between hover:border-[#C9A35F] transition-all relative group"
                 >
                   <div className="space-y-2">
-                    <div className="flex justify-between items-start gap-1">
-                      <span className="text-[10px] bg-neutral-100 font-mono text-neutral-700 px-1.5 py-0.5 rounded border border-[#D7D7D7] truncate max-w-[80px]">
+                    <div className="flex justify-between items-center gap-1">
+                      <span className="text-[10px] bg-[#16161A] font-mono text-neutral-400 px-1.5 py-0.5 rounded border border-[rgba(255,255,255,0.08)] truncate max-w-[80px]">
                         {item.category}
                       </span>
                       
@@ -317,14 +317,14 @@ export default function WardrobePage({
                       <div className="flex gap-1">
                         <button
                           onClick={() => onToggleHideItem(item.id)}
-                          className="p-1 border border-[#D7D7D7] text-neutral-500 hover:text-black rounded"
+                          className="p-1 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#F8F8F8] transition-colors rounded-[4px]"
                           title={item.usageStatus === 'hidden' ? 'Восстановить' : 'Скрыть'}
                         >
                           {item.usageStatus === 'hidden' ? <Eye size={10} /> : <EyeOff size={10} />}
                         </button>
                         <button
                           onClick={() => onDeleteItem(item.id)}
-                          className="p-1 border border-[#D7D7D7] text-neutral-400 hover:text-red-600 rounded"
+                          className="p-1 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#C97878] transition-colors rounded-[4px]"
                           title="Удалить"
                         >
                           <Trash2 size={10} />
@@ -333,19 +333,19 @@ export default function WardrobePage({
                     </div>
 
                     {/* Grayscale drawing placeholder */}
-                    <div className="aspect-[4/3] bg-[#F1F1F1] border border-[#D3D3D3] rounded flex flex-col items-center justify-center p-2 text-center text-neutral-500 relative overflow-hidden">
-                      <Shirt size={18} className="text-neutral-400 mb-1" />
-                      <span className="text-[10px] font-mono leading-tight">{item.imageSrc}</span>
-                      <span className="absolute bottom-1 right-1 bg-white px-1 rounded text-[8px] font-mono border border-neutral-300">
+                    <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.05)] rounded-[6px] flex flex-col items-center justify-center p-2 text-center text-[#B5B5BC] relative overflow-hidden">
+                      <Shirt size={18} className="text-[#8B8B93] mb-1" />
+                      <span className="text-[10px] font-mono leading-tight text-[#8B8B93]">{item.imageSrc}</span>
+                      <span className="absolute bottom-1 right-1 bg-[#1A1A1D] px-1.5 rounded-[4px] text-[8px] font-mono border border-[rgba(255,255,255,0.08)] text-[#F8F8F8]">
                         {item.sideType}
                       </span>
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-bold text-neutral-900 leading-tight truncate" title={item.name}>
+                      <h4 className="text-xs font-semibold text-[#F8F8F8] leading-tight truncate" title={item.name}>
                         {item.name}
                       </h4>
-                      <p className="text-[9px] text-neutral-400 font-mono tracking-wide mt-0.5 uppercase">
+                      <p className="text-[9px] text-[#8B8B93] font-mono tracking-wide mt-0.5 uppercase">
                         {item.classification}
                       </p>
                     </div>
@@ -357,10 +357,10 @@ export default function WardrobePage({
         )}
 
         {filteredItems.length === 0 && filteredKits.length === 0 && (
-          <div className="text-center py-12 bg-white border border-[#D7D7D7] rounded-lg">
-            <Info size={24} className="text-neutral-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-neutral-700">Нет подходящих элементов гардероба.</p>
-            <p className="text-xs text-neutral-400 mt-1">
+          <div className="text-center py-12 bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px]">
+            <Info size={24} className="text-[#8B8B93] mx-auto mb-2" />
+            <p className="text-sm font-semibold text-[#F8F8F8]">Нет подходящих элементов гардероба.</p>
+            <p className="text-xs text-[#8B8B93] mt-1.5">
               Попробуйте изменить настройки фильтров или выполните первый продакшен.
             </p>
           </div>

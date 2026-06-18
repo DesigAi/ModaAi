@@ -1,1 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..950;1,100..950&family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Outfit", sans-serif;
+
+  /* Design System Colors */
+  --color-app-bg: #050505;
+  --color-surface-1: #0F0F11;
+  --color-surface-2: #16161A;
+  --color-surface-3: #1A1A1D;
+  --color-surface-hover: #1D1D21;
+  --color-surface-selected: rgba(201, 163, 95, 0.10);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-default: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-text-primary: #F8F8F8;
+  --color-text-secondary: #B5B5BC;
+  --color-text-muted: #8B8B93;
+  --color-text-disabled: #5F5F66;
+  --color-accent-gold: #C9A35F;
+  --color-accent-gold-hover: #D4B474;
+  --color-accent-gold-pressed: #A88444;
+  --color-accent-gold-soft: rgba(201, 163, 95, 0.12);
+  --color-focus-ring: rgba(201, 163, 95, 0.45);
+
+  --color-success: #78A98A;
+  --color-success-soft: rgba(120, 169, 138, 0.12);
+  --color-warning-custom: #C9A35F;
+  --color-warning-soft: rgba(201, 163, 95, 0.12);
+  --color-error-custom: #C97878;
+  --color-error-soft: rgba(201, 120, 120, 0.12);
+  --color-info-custom: #8294B8;
+  --color-info-soft: rgba(130, 148, 184, 0.12);
+}
+
+@layer base {
+  :root {
+    --app-bg: #050505;
+    --surface-1: #0F0F11;
+    --surface-2: #16161A;
+    --surface-3: #1A1A1D;
+    --surface-hover: #1D1D21;
+    --surface-selected: rgba(201, 163, 95, 0.10);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-default: rgba(255, 255, 255, 0.12);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --text-primary: #F8F8F8;
+    --text-secondary: #B5B5BC;
+    --text-muted: #8B8B93;
+    --text-disabled: #5F5F66;
+    --accent-gold: #C9A35F;
+    --accent-gold-hover: #D4B474;
+    --accent-gold-pressed: #A88444;
+    --accent-gold-soft: rgba(201, 163, 95, 0.12);
+    --focus-ring: rgba(201, 163, 95, 0.45);
+
+    --success: #78A98A;
+    --success-soft: rgba(120, 169, 138, 0.12);
+    --warning: #C9A35F;
+    --warning-soft: rgba(201, 163, 95, 0.12);
+    --error: #C97878;
+    --error-soft: rgba(201, 120, 120, 0.12);
+    --info: #8294B8;
+    --info-soft: rgba(130, 148, 184, 0.12);
+  }
+
+  body {
+    background-color: var(--color-app-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom Scrollbar Styles for elegant dark aesthetic */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050505;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232326;
+    border-radius: 9999px;
+    border: 2px solid #050505;
+    transition: background-color 0.2s;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #C9A35F;
+  }
+  ::-webkit-scrollbar-corner {
+    background: #050505;
+  }
+
+  /* Support Firefox global scrollbar rules */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #232326 #050505;
+  }
+}
