@@ -435,7 +435,7 @@ export default function CreatePage({
                           <span className="text-[9px] bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded font-bold uppercase font-sans">Выбрана</span>
                         )}
                       </div>
-                      <div className="aspect-[4/3] bg-[#16161A] rounded-[6px] border border-[rgba(255,255,255,0.05)] flex items-center justify-center font-mono text-center text-[10px] text-[#8B8B93] p-2">
+                      <div className="aspect-[16/9] bg-[#16161A] rounded-[6px] border border-[rgba(255,255,255,0.05)] flex items-center justify-center font-mono text-center text-[10px] text-[#8B8B93] p-2">
                         {model.previewUrl}
                       </div>
                       <div>
