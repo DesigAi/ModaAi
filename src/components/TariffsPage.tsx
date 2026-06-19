@@ -445,6 +445,23 @@ export default function TariffsPage({
         const startIdx = (activePage - 1) * 10;
         const paginatedLedger = ledger.slice(startIdx, startIdx + 10);
 
+        const getPageNumbers = () => {
+          const pages: (number | string)[] = [];
+          const range = 1; // Number of pages on each side of the active page
+          for (let i = 1; i <= totalPages; i++) {
+            if (
+              i === 1 ||
+              i === totalPages ||
+              (i >= activePage - range && i <= activePage + range)
+            ) {
+              pages.push(i);
+            } else if (pages[pages.length - 1] !== '...') {
+              pages.push('...');
+            }
+          }
+          return pages;
+        };
+
         return (
           <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 space-y-4">
             <h2 className="text-md font-display font-medium text-[#F8F8F8]">
@@ -483,11 +500,11 @@ export default function TariffsPage({
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.08)] pt-4 mt-2">
-                <span className="text-[12px] text-[#8B8B93] select-none">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[rgba(255,255,255,0.08)] pt-4 mt-2">
+                <span className="text-[12px] text-[#8B8B93] select-none text-center sm:text-left">
                   Показано {startIdx + 1}–{Math.min(startIdx + 10, ledger.length)} из {ledger.length}
                 </span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
                   <button
                     disabled={activePage === 1}
                     onClick={() => setCurrentPage(activePage - 1)}
@@ -495,19 +512,31 @@ export default function TariffsPage({
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                    <button
-                      key={pg}
-                      onClick={() => setCurrentPage(pg)}
-                      className={`min-w-[28px] h-7 px-2 text-xs font-semibold rounded-[4px] cursor-pointer transition-colors ${
-                        activePage === pg
-                          ? 'bg-[#C9A35F] text-[#050505]'
-                          : 'text-[#B5B5BC] bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:text-[#F8F8F8] hover:bg-[#1D1D21]'
-                      }`}
-                    >
-                      {pg}
-                    </button>
-                  ))}
+                  {getPageNumbers().map((pg, idx) => {
+                    if (pg === '...') {
+                      return (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="min-w-[28px] h-7 px-2 text-xs font-semibold text-[#8B8B93] flex items-center justify-center select-none"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        key={pg}
+                        onClick={() => setCurrentPage(Number(pg))}
+                        className={`min-w-[28px] h-7 px-2 text-xs font-semibold rounded-[4px] cursor-pointer transition-colors ${
+                          activePage === pg
+                            ? 'bg-[#C9A35F] text-[#050505]'
+                            : 'text-[#B5B5BC] bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:text-[#F8F8F8] hover:bg-[#1D1D21]'
+                        }`}
+                      >
+                        {pg}
+                      </button>
+                    );
+                  })}
                   <button
                     disabled={activePage === totalPages}
                     onClick={() => setCurrentPage(activePage + 1)}

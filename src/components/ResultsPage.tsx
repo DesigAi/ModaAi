@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ResultItem, ResultState, LedgerItem } from '../types';
-import { LayoutGrid, Download, Play, RefreshCw, AlertTriangle, MessageSquare, Info, Star, ShieldCheck, X, CheckSquare, Plus, Activity, ExternalLink, Pencil, Check } from 'lucide-react';
+import { LayoutGrid, Download, Play, RefreshCw, AlertTriangle, MessageSquare, Info, Star, ShieldCheck, X, CheckSquare, Plus, Activity, ExternalLink, Pencil, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ResultsPageProps {
   results: ResultItem[];
@@ -22,6 +22,7 @@ export default function ResultsPage({
   onStartWithLookId
 }: ResultsPageProps) {
   const [filter, setFilter] = useState<'all' | 'photo' | 'kit' | 'processing' | 'failed'>('all');
+  const [activePage, setActivePage] = useState<number>(1);
   const [selectedResult, setSelectedResult] = useState<ResultItem | null>(null);
   
   const [isEditingName, setIsEditingName] = useState(false);
@@ -37,6 +38,29 @@ export default function ResultsPage({
     if (filter === 'failed') return ['failed', 'support_required'].includes(res.status);
     return true;
   });
+
+  const itemsPerPage = 12;
+  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+  const currentPageResolved = Math.min(activePage, Math.max(1, totalPages));
+  const startIdx = (currentPageResolved - 1) * itemsPerPage;
+  const paginatedResults = filteredResults.slice(startIdx, startIdx + itemsPerPage);
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const range = 1; // Number of pages on each side of the active page
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPageResolved - range && i <= currentPageResolved + range)
+      ) {
+        pages.push(i);
+      } else if (pages[pages.length - 1] !== '...') {
+        pages.push('...');
+      }
+    }
+    return pages;
+  };
 
   const getStatusBadge = (status: ResultState) => {
     switch (status) {
@@ -109,7 +133,10 @@ export default function ResultsPage({
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setFilter(tab.id as any)}
+            onClick={() => {
+              setFilter(tab.id as any);
+              setActivePage(1);
+            }}
             className={`px-3.5 py-1.5 md:px-5 md:py-2 text-xs md:text-sm font-semibold rounded-[6px] transition-all cursor-pointer border ${
               filter === tab.id
                 ? 'bg-[#C9A35F] border-[#C9A35F] text-[#050505] shadow-lg shadow-[rgba(201,163,95,0.15)] font-bold'
@@ -134,112 +161,162 @@ export default function ResultsPage({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {filteredResults.map((res) => (
-              <div
-                key={res.id}
-                onClick={() => setSelectedResult(res)}
-                className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 space-y-4 hover:border-[#C9A35F] cursor-pointer select-none transition-all relative flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h3 className="text-sm font-display font-medium leading-tight text-[#F8F8F8]">{res.name}</h3>
-                      <span className="text-[10px] text-[#8B8B93] font-mono block mt-1">{res.date}</span>
-                    </div>
-                    <div>
-                      {getStatusBadge(res.status)}
-                    </div>
-                  </div>
-  
-                  {/* Main representation preview based on state */}
-                  <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                    
-                    {res.status === 'ready' ? (
-                      <div className="w-full h-full flex flex-col justify-between p-1">
-                        <div className="grid grid-cols-4 gap-1 flex-1">
-                          {[1, 2, 3, 4].map((num) => (
-                            <div key={num} className="bg-[#1A1A1D] border border-[rgba(255,255,255,0.05)] rounded-[4px] flex items-center justify-center text-[10px] font-mono font-bold text-[#8B8B93]">
-                              F{num}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {res.type === 'kit' && (
-                          <div className="bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] py-1.5 text-center text-[9px] font-mono rounded-[4px] font-bold mt-2 uppercase flex items-center justify-center gap-1.5">
-                            <Play size={11} className="fill-current text-[#C9A35F]" />
-                            <span>▶ 15с Видео-комплект</span>
-                          </div>
-                        )}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {paginatedResults.map((res) => (
+                <div
+                  key={res.id}
+                  onClick={() => setSelectedResult(res)}
+                  className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-5 space-y-4 hover:border-[#C9A35F] cursor-pointer select-none transition-all relative flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <h3 className="text-sm font-display font-medium leading-tight text-[#F8F8F8]">{res.name}</h3>
+                        <span className="text-[10px] text-[#8B8B93] font-mono block mt-1">{res.date}</span>
                       </div>
-                    ) : (
-                      <div className="text-center space-y-2">
-                        <RefreshCw size={20} className={`text-[#8B8B93] mx-auto ${['processing', 'quality_check', 'archive_preparing', 'regenerating'].includes(res.status) ? 'animate-spin' : ''}`} />
-                        <span className="text-[10px] font-mono text-[#8B8B93] block uppercase tracking-wider">
-                          {res.status === 'queued' && 'Ожидание места в очереди...'}
-                          {res.status === 'processing' && 'Маскирование и наложение...'}
-                          {res.status === 'quality_check' && 'Проверка сопряжений кожи...'}
-                          {res.status === 'archive_preparing' && 'Сборка фотоархива...'}
-                          {res.status === 'failed' && 'Генерация прервана'}
-                          {res.status === 'regenerating' && 'Автоисправление брака...'}
-                          {res.status === 'support_required' && 'Решается инженером поддержки'}
+                      <div>
+                        {getStatusBadge(res.status)}
+                      </div>
+                    </div>
+    
+                    {/* Main representation preview based on state */}
+                    <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                      
+                      {res.status === 'ready' ? (
+                        <div className="w-full h-full flex flex-col justify-between p-1">
+                          <div className="grid grid-cols-4 gap-1 flex-1">
+                            {[1, 2, 3, 4].map((num) => (
+                              <div key={num} className="bg-[#1A1A1D] border border-[rgba(255,255,255,0.05)] rounded-[4px] flex items-center justify-center text-[10px] font-mono font-bold text-[#8B8B93]">
+                                F{num}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {res.type === 'kit' && (
+                            <div className="bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] py-1.5 text-center text-[9px] font-mono rounded-[4px] font-bold mt-2 uppercase flex items-center justify-center gap-1.5">
+                              <span>▶ 15с Видео-комплект</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center space-y-2">
+                          <RefreshCw size={20} className={`text-[#8B8B93] mx-auto ${['processing', 'quality_check', 'archive_preparing', 'regenerating'].includes(res.status) ? 'animate-spin' : ''}`} />
+                          <span className="text-[10px] font-mono text-[#8B8B93] block uppercase tracking-wider">
+                            {res.status === 'queued' && 'Ожидание места в очереди...'}
+                            {res.status === 'processing' && 'Маскирование и наложение...'}
+                            {res.status === 'quality_check' && 'Проверка сопряжений кожи...'}
+                            {res.status === 'archive_preparing' && 'Сборка фотоархива...'}
+                            {res.status === 'failed' && 'Генерация прервана'}
+                            {res.status === 'regenerating' && 'Автоисправление брака...'}
+                            {res.status === 'support_required' && 'Решается инженером поддержки'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+    
+                    {/* Parameters list metadata summary */}
+                    <div className="pt-2 border-t border-[rgba(255,255,255,0.08)] grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] leading-tight text-[#B5B5BC] font-sans">
+                      <div>
+                        <span className="text-[#8B8B93] block font-light">Образ:</span>
+                        <span className="font-semibold block text-[#F8F8F8] truncate">{res.lookName}</span>
+                      </div>
+                      <div>
+                        <span className="text-[#8B8B93] block font-light">Локация:</span>
+                        <span className="font-semibold block text-[#F8F8F8] truncate">{res.location}</span>
+                      </div>
+                      <div>
+                        <span className="text-[#8B8B93] block font-light">Модель:</span>
+                        <span className="font-semibold block text-[#F8F8F8] truncate">{res.modelName}</span>
+                      </div>
+                      <div>
+                        <span className="text-[#8B8B93] block font-light">Тип:</span>
+                        <span className="font-semibold block text-[#F8F8F8] uppercase font-mono text-[9px]">
+                          {res.type === 'photo' ? '7 фото' : 'комплект'}
                         </span>
                       </div>
+                    </div>
+                  </div>
+    
+                  {/* Card Actions Footer */}
+                  <div className="pt-3 border-t border-[rgba(255,255,255,0.08)] flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedResult(res);
+                      }}
+                      className="flex-1 bg-[#16161A] hover:bg-[#1D1D21] border border-[rgba(255,255,255,0.08)] text-[#F8F8F8] font-sans font-medium text-xs py-2 px-3 rounded-[6px] text-center transition-colors"
+                    >
+                      Открыть
+                    </button>
+                    {res.status === 'ready' && (
+                      <a
+                        href="#zip-download"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          alert('Скачивание ZIP-архива с исходными 7 фотографиями (симуляция)');
+                        }}
+                        className="p-2 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#C9A35F] rounded-[6px] transition-colors"
+                        title="Скачать ZIP"
+                      >
+                        <Download size={13} />
+                      </a>
                     )}
                   </div>
-  
-                  {/* Parameters list metadata summary */}
-                  <div className="pt-2 border-t border-[rgba(255,255,255,0.08)] grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] leading-tight text-[#B5B5BC] font-sans">
-                    <div>
-                      <span className="text-[#8B8B93] block font-light">Образ:</span>
-                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.lookName}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#8B8B93] block font-light">Локация:</span>
-                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.location}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#8B8B93] block font-light">Модель:</span>
-                      <span className="font-semibold block text-[#F8F8F8] truncate">{res.modelName}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#8B8B93] block font-light">Тип:</span>
-                      <span className="font-semibold block text-[#F8F8F8] uppercase font-mono text-[9px]">
-                        {res.type === 'photo' ? '7 фото' : 'комплект'}
-                      </span>
-                    </div>
-                  </div>
                 </div>
-  
-                {/* Card Actions Footer */}
-                <div className="pt-3 border-t border-[rgba(255,255,255,0.08)] flex gap-2">
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[rgba(255,255,255,0.08)] pt-4 mt-6">
+                <span className="text-[12px] text-[#8B8B93] select-none text-center sm:text-left">
+                  Показано {startIdx + 1}–{Math.min(startIdx + itemsPerPage, filteredResults.length)} из {filteredResults.length}
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedResult(res);
-                    }}
-                    className="flex-1 bg-[#16161A] hover:bg-[#1D1D21] border border-[rgba(255,255,255,0.08)] text-[#F8F8F8] font-sans font-medium text-xs py-2 px-3 rounded-[6px] text-center transition-colors"
+                    disabled={currentPageResolved === 1}
+                    onClick={() => setActivePage(currentPageResolved - 1)}
+                    className="p-1.5 text-[#B5B5BC] bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:text-[#F8F8F8] hover:bg-[#1D1D21] disabled:opacity-40 disabled:hover:bg-[#16161A] disabled:hover:text-[#B5B5BC] rounded-[4px] cursor-pointer transition-colors"
                   >
-                    Открыть
+                    <ChevronLeft size={16} />
                   </button>
-                  {res.status === 'ready' && (
-                    <a
-                      href="#zip-download"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        alert('Скачивание ZIP-архива с исходными 7 фотографиями (симуляция)');
-                      }}
-                      className="p-2 border border-[rgba(255,255,255,0.08)] bg-[#16161A] text-[#8B8B93] hover:text-[#C9A35F] rounded-[6px] transition-colors"
-                      title="Скачать ZIP"
-                    >
-                      <Download size={13} />
-                    </a>
-                  )}
+                  {getPageNumbers().map((pg, idx) => {
+                    if (pg === '...') {
+                      return (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="min-w-[28px] h-7 px-2 text-xs font-semibold text-[#8B8B93] flex items-center justify-center select-none"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        key={pg}
+                        onClick={() => setActivePage(Number(pg))}
+                        className={`min-w-[28px] h-7 px-2 text-xs font-semibold rounded-[4px] cursor-pointer transition-colors ${
+                          currentPageResolved === pg
+                            ? 'bg-[#C9A35F] text-[#050505]'
+                            : 'text-[#B5B5BC] bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:text-[#F8F8F8] hover:bg-[#1D1D21]'
+                        }`}
+                      >
+                        {pg}
+                      </button>
+                    );
+                  })}
+                  <button
+                    disabled={currentPageResolved === totalPages}
+                    onClick={() => setActivePage(currentPageResolved + 1)}
+                    className="p-1.5 text-[#B5B5BC] bg-[#16161A] border border-[rgba(255,255,255,0.08)] hover:text-[#F8F8F8] hover:bg-[#1D1D21] disabled:opacity-40 disabled:hover:bg-[#16161A] disabled:hover:text-[#B5B5BC] rounded-[4px] cursor-pointer transition-colors"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
 
@@ -336,40 +413,16 @@ export default function ResultsPage({
                 </button>
               </div>
 
-              {/* Status Info cards */}
-              <div className="p-4 rounded-[8px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#8B8B93]">Текущее состояние</span>
-                  {getStatusBadge(selectedResult.status)}
-                </div>
-
-                {/* Progress Timelines for Photos vs Kits */}
-                <div className="space-y-3">
-                  <span className="block text-[10px] font-mono text-[#8B8B93] uppercase tracking-wider">Лог технологических этапов</span>
-                  
-                  {selectedResult.type === 'photo' ? (
-                    <div className="grid grid-cols-7 gap-1 font-mono text-[9px] text-center text-[#8B8B93] leading-none">
-                      <div className={`p-1.5 border rounded-[4px] ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>В очереди</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Подготовка</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Образ</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold animate-pulse' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Ген 7 ф.</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Контроль</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>ZIP</div>
-                      <div className={`p-1.5 border rounded-[4px] ${selectedResult.status === 'ready' ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Готово</div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-8 gap-1 font-mono text-[8px] text-center text-[#8B8B93] leading-none font-sans">
-                      <div className={`p-1.5 border rounded-[4px] ${['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>В очереди</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Подготовка</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Образ</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Ген 7 ф.</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['processing', 'quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Видео 15с</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['quality_check', 'archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Контроль</div>
-                      <div className={`p-1.5 border rounded-[4px] ${['archive_preparing', 'ready'].includes(selectedResult.status) ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Сборка ZIP</div>
-                      <div className={`p-1.5 border rounded-[4px] ${selectedResult.status === 'ready' ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F] font-semibold' : 'bg-[#1A1A1D] border-[rgba(255,255,255,0.05)]'}`}>Готово</div>
-                    </div>
-                  )}
-                </div>
+              {/* Status Info card */}
+              <div className="p-4 rounded-[8px] bg-[#16161A] border border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#8B8B93]">Статус</span>
+                {selectedResult.status === 'ready' ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-bold bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.2)] text-[#C9A35F] font-mono">Готово</span>
+                ) : ['failed', 'support_required'].includes(selectedResult.status) ? (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-bold bg-[rgba(201,120,120,0.12)] border border-[rgba(201,120,120,0.2)] text-[#C97878] font-mono">Ошибка</span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-bold bg-[rgba(201,163,95,0.05)] border border-[rgba(201,163,95,0.15)] text-[#C9A35F] animate-pulse font-mono">В процессе</span>
+                )}
               </div>
 
               {/* Main Content Layout Depending on Status */}
@@ -540,25 +593,6 @@ export default function ResultsPage({
 
             </div>
 
-            <div className="border-t border-[rgba(255,255,255,0.08)] pt-4 mt-6 flex justify-between items-center bg-[#0F0F11]">
-              {selectedResult.status === 'ready' && (
-                <button
-                  onClick={() => {
-                    onStartWithLookId(selectedResult.lookId, selectedResult);
-                    setSelectedResult(null);
-                  }}
-                  className="h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm px-5 rounded-[6px] transition-all select-none active:translate-y-[1px] cursor-pointer"
-                >
-                  Создать еще из этого образа
-                </button>
-              )}
-              <button
-                onClick={() => setSelectedResult(null)}
-                className="h-[36px] border border-[rgba(255,255,255,0.12)] hover:bg-[#16161A] text-[#F8F8F8] text-xs px-4 rounded-[6px] ml-auto transition-colors cursor-pointer"
-              >
-                Вернуться к результатам
-              </button>
-            </div>
           </div>
         </div>
       )}

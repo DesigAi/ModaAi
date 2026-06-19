@@ -271,13 +271,13 @@ export default function App() {
   };
 
   // Direct fast track production trigger from an existing Look card!
-  const handleStartProductionWithLook = (look: Look) => {
+  const handleStartProductionWithLook = (look: Look, typeOverride?: 'photo' | 'kit') => {
     if (look.id === 'dummy') {
       // Direct jump starter
       const defaultModel = savedModels[0] || INITIAL_MODELS[0];
       const defaultKit = wardrobeKits[0] || INITIAL_WARDROBE_KITS[0];
       
-      const typeChoice: 'photo' | 'kit' = creditBalance >= 1.0 ? 'kit' : 'photo';
+      const typeChoice: 'photo' | 'kit' = typeOverride || (creditBalance >= 1.0 ? 'kit' : 'photo');
       onStartFlowWithPreset(typeChoice, defaultModel, defaultKit, 'Ускоренная съемка образов');
       return;
     }
@@ -285,7 +285,7 @@ export default function App() {
     const matchedModel = savedModels.find((m) => m.id === look.modelId) || savedModels[0];
     const matchedKit = wardrobeKits.find((k) => k.id === look.kitId) || wardrobeKits[0];
 
-    const typeChoice: 'photo' | 'kit' = creditBalance >= 1.0 ? 'kit' : 'photo';
+    const typeChoice: 'photo' | 'kit' = typeOverride || (creditBalance >= 1.0 ? 'kit' : 'photo');
     onStartFlowWithPreset(typeChoice, matchedModel, matchedKit, look.name);
   };
 

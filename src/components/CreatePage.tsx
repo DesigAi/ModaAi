@@ -229,8 +229,8 @@ export default function CreatePage({
   if (!activeFlow) {
     // Zero-state choice of flow
     return (
-      <div className="p-6 max-w-4xl mx-auto space-y-8 font-sans text-[#F8F8F8]">
-        <div className="text-center py-10 max-w-2xl mx-auto space-y-3">
+      <div className="p-4 md:p-6 pt-3 md:pt-6 max-w-4xl mx-auto space-y-5 md:space-y-8 font-sans text-[#F8F8F8]">
+        <div className="text-center pt-4 pb-5 md:py-10 max-w-2xl mx-auto space-y-3">
           <h1 className="text-2xl font-display font-medium tracking-tight text-[#F8F8F8]">Создать AI-продакшен</h1>
           <p className="text-sm text-[#8B8B93]">
             Для запуска съемок выберите подходящий формат в зависимости от доступных у вас кредитов.
@@ -334,20 +334,20 @@ export default function CreatePage({
       <div className="flex-1 p-6 pb-28 md:pb-24 bg-[#050505] overflow-y-auto min-w-0 border-r border-[rgba(255,255,255,0.08)]">
         
         {/* Top Stepper Area (Above main headers) */}
-        <div className="mb-6 pb-5 border-b border-[rgba(255,255,255,0.08)] space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-6 pb-5 border-b border-[rgba(255,255,255,0.08)]">
+          <div className="flex flex-row items-center justify-between gap-3 w-full">
             {onCancelFlow && (
               <button
                 onClick={onCancelFlow}
                 id="back_to_formats_btn"
-                className="flex items-center gap-2 text-xs text-[#F8F8F8] font-bold transition-all py-1.5 px-3.5 rounded-[6px] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] bg-[#16161A] select-none whitespace-nowrap self-start cursor-pointer"
+                className="flex items-center justify-center gap-2 text-xs text-[#F8F8F8] font-bold transition-all h-[34px] px-3.5 rounded-[6px] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] bg-[#16161A] select-none whitespace-nowrap cursor-pointer shrink-0"
               >
-                <span>← Назад к выбору</span>
+                <span>Главное меню</span>
               </button>
             )}
 
             {/* Stepper Steps Row */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-none w-full sm:w-auto">
+            <div className="flex items-center justify-end gap-2 scrollbar-none sm:w-auto">
               {stepperSteps.map((step, idx) => {
                 const isActive = idx === currentStepIndex;
                 const isCompleted = idx < currentStepIndex;
@@ -356,7 +356,7 @@ export default function CreatePage({
                     key={step.label}
                     disabled={idx > currentStepIndex && getMissingItemsList().length > 0}
                     onClick={() => onStepChange(idx)}
-                    className={`flex items-center gap-2 text-left text-xs font-semibold py-1.5 px-3 rounded-[6px] border select-none transition-all cursor-pointer ${
+                    className={`${isActive ? 'flex' : 'hidden sm:flex'} items-center gap-2 text-left text-xs font-semibold h-[34px] px-3 rounded-[6px] border select-none transition-all cursor-pointer ${
                       isActive 
                         ? 'bg-[#C9A35F] text-[#050505] border-[#C9A35F]' 
                         : isCompleted 
@@ -373,6 +373,25 @@ export default function CreatePage({
               })}
             </div>
           </div>
+        </div>
+
+        {/* Previous Step Button - placed right before the step headers */}
+        <div className="mb-4">
+          <button
+            disabled={currentStepIndex === 0}
+            onClick={() => {
+              if (currentStepIndex > 0) {
+                onStepChange(currentStepIndex - 1);
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-[6px] border select-none transition-all ${
+              currentStepIndex === 0
+                ? 'text-[#4B4B52] bg-transparent border-[rgba(255,255,255,0.05)] cursor-not-allowed opacity-40'
+                : 'text-[#8B8B93] hover:text-[#C9A35F] bg-[#16161A] hover:bg-[#1D1D21] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] cursor-pointer'
+            }`}
+          >
+            <span>Предыдущий шаг</span>
+          </button>
         </div>
         
         {/* Step 1: Model Choice */}
@@ -594,12 +613,26 @@ export default function CreatePage({
                 onClick={() => setWardrobeTab('select')}
                 className={`flex-1 py-1.5 px-3 rounded-[6px] transition-all cursor-pointer ${wardrobeTab === 'select' ? 'bg-[#1D1D21] text-[#C9A35F] font-semibold' : 'text-[#8B8B93]'}`}
               >
-                База гардероба
+                Готовые образы
               </button>
             </div>
 
             {wardrobeTab === 'upload' ? (
               <div className="space-y-6 border border-[rgba(255,255,255,0.08)] p-5 rounded-[12px] bg-[#0F0F11]">
+                {/* Give name to this clothing set - put at the top per user request */}
+                <div className="pb-4 border-b border-[rgba(255,255,255,0.08)]">
+                  <label className="block text-xs font-semibold text-[#B5B5BC] mb-1.5">
+                    Дайте название этому комплекту одежды
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Например: Осеннее серое шерстяное пальто с шарфом"
+                    value={uploadKitName}
+                    onChange={(e) => setUploadKitName(e.target.value)}
+                    className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8]"
+                  />
+                </div>
+
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-bold uppercase tracking-wider text-[#8B8B93]">
                     Слоты классификации одежды
@@ -681,60 +714,66 @@ export default function CreatePage({
                     )}
                   </div>
                 )}
-
-                <div className="space-y-3 pt-3 border-t border-[rgba(255,255,255,0.08)] font-sans">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#B5B5BC] mb-1.5">
-                      Дайте название этому комплекту одежды
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Например: Осеннее серое шерстяное пальто с шарфом"
-                      value={uploadKitName}
-                      onChange={(e) => setUploadKitName(e.target.value)}
-                      className="w-full bg-[#16161A] border border-[rgba(255,255,255,0.08)] focus:border-[#C9A35F] focus:outline-none rounded-[6px] p-2.5 text-xs text-[#F8F8F8]"
-                    />
-                  </div>
-
-
-                </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {wardrobeKits.map((kit) => (
-                    <div
-                      key={kit.id}
-                      className={`border p-4 rounded-[8px] bg-[#0F0F11] space-y-3 cursor-pointer transition-all ${activeFlow.selectedKit?.id === kit.id ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
-                      onClick={() => onUpdateFlowData({ selectedKit: kit, lookName: `Образ с "${kit.name}"` })}
-                    >
-                      <div className="flex justify-between items-start">
-                        <span className="text-[10px] font-mono text-[#8B8B93]">ID: {kit.id}</span>
-                        {activeFlow.selectedKit?.id === kit.id && (
-                          <span className="text-[9px] bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded font-bold uppercase">Выбран</span>
-                        )}
-                      </div>
-                      
-                      {/* Grid representation */}
-                      <div className="grid grid-cols-4 gap-1.5 bg-[#16161A] p-2 rounded-[6px]">
-                        {kit.items.map((i, idx) => (
-                          <div key={idx} className="aspect-square bg-[#1D1D21] border border-[rgba(255,255,255,0.05)] text-[#C9A35F] rounded flex items-center justify-center text-[9px] font-mono p-1">
-                            {i.sideType[0].toUpperCase()}
+                  {looks.map((look) => {
+                    const isSelected = activeFlow.lookId === look.id || (activeFlow.selectedKit?.id === look.kitId && activeFlow.selectedModel?.id === look.modelId);
+                    const matchedModel = savedModels.find((m) => m.id === look.modelId) || savedModels[0];
+                    const matchedKit = wardrobeKits.find((k) => k.id === look.kitId) || wardrobeKits[0];
+                    return (
+                      <div
+                        key={look.id}
+                        className={`border p-4 rounded-[8px] bg-[#0F0F11] space-y-3 cursor-pointer transition-all ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
+                        onClick={() => onUpdateFlowData({
+                          selectedKit: matchedKit,
+                          selectedModel: matchedModel,
+                          lookName: look.name,
+                          lookId: look.id
+                        })}
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="text-[10px] font-mono text-[#8B8B93]">ID: {look.id}</span>
+                          {isSelected && (
+                            <span className="text-[9px] bg-[#C9A35F] text-[#050505] px-2 py-0.5 rounded font-bold uppercase font-mono">Выбран</span>
+                          )}
+                        </div>
+                        
+                        {/* Simulating appearance with a miniature grid */}
+                        <div className="aspect-[4/3] bg-[#16161A] border border-[rgba(255,255,255,0.08)] rounded-[6px] p-4 flex flex-col items-center justify-center text-[#B5B5BC] space-y-2 relative overflow-hidden">
+                          <div className="w-10 h-10 rounded-full border border-[rgba(255,255,255,0.12)] bg-[#1A1A1D] text-[8px] flex items-center justify-center font-bold text-[#8B8B93]">
+                            O
                           </div>
-                        ))}
-                      </div>
+                          <div className="w-16 h-8 border border-[rgba(255,255,255,0.12)] bg-[#1A1A1D] rounded-[4px] text-[9px] flex items-center justify-center font-bold text-[#B5B5BC]">
+                            [Ткань]
+                          </div>
+                          
+                          <span className="text-[9px] font-semibold text-[#C9A35F] font-mono bg-[rgba(201,163,95,0.12)] border border-[rgba(201,163,95,0.15)] px-1.5 py-0.5 rounded-[4px] uppercase max-w-full truncate">
+                            {look.previewUrl}
+                          </span>
+                        </div>
 
-                      <h4 className="text-sm font-semibold text-[#F8F8F8]">{kit.name}</h4>
-                      <p className="text-[10px] text-[#8B8B93] uppercase font-mono">Содержит вещей: {kit.items.length}</p>
-                    </div>
-                  ))}
+                        <h4 className="text-sm font-semibold text-[#F8F8F8] truncate">{look.name}</h4>
+                        
+                        <div className="space-y-1 pt-1.5 border-t border-[rgba(255,255,255,0.05)] text-[11px] font-sans">
+                          <div className="flex justify-between">
+                            <span className="text-[#8B8B93]">Модель:</span>
+                            <span className="text-[#F8F8F8] font-medium">{look.modelName}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#8B8B93]">Комплект одежды:</span>
+                            <span className="text-[#F8F8F8] font-medium truncate max-w-[150px]">{look.kitName}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {wardrobeKits.length === 0 && (
-                  <p className="text-xs text-[#8B8B93] italic font-sans py-4">База пуста. Попробуйте вкладку "Загрузить вещи".</p>
+                {looks.length === 0 && (
+                  <p className="text-xs text-[#8B8B93] italic font-sans py-4">Список сохраненных образов пуст. Создайте новый образ во вкладке "Загрузить вещи".</p>
                 )}
-
-
               </div>
             )}
           </div>
@@ -769,10 +808,6 @@ export default function CreatePage({
                   <div className="flex justify-between items-center text-[#B5B5BC]">
                     <span className="text-[#8B8B93]">AI Модель:</span>
                     <span className="font-semibold text-[#F8F8F8]">{activeFlow.selectedModel?.name} ({activeFlow.selectedModel?.gender})</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[#B5B5BC]">
-                    <span className="text-[#8B8B93]">Одежда каталога:</span>
-                    <span className="font-semibold text-[#F8F8F8] block max-w-[150px] truncate">{activeFlow.selectedKit?.name}</span>
                   </div>
                   <div className="flex justify-between items-center text-[#B5B5BC]">
                     <span className="text-[#8B8B93]">Слоты ракурсов:</span>
@@ -865,7 +900,7 @@ export default function CreatePage({
                   onClick={handleControlledSettingsReset}
                   className="text-[#C9A35F] hover:text-[#D4B474] text-[10px] font-semibold underline uppercase cursor-pointer"
                 >
-                  Сбросить к дефолту
+                  Сбросить
                 </button>
               </div>
 
@@ -994,34 +1029,82 @@ export default function CreatePage({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {VIDEO_TEMPLATES.map((tmpl) => {
                 const isSelected = activeFlow.selectedVideoTemplate === tmpl.name;
+                const getTemplateVideoUrl = (tmplId: string) => {
+                  switch (tmplId) {
+                    case 'vid_streetwear':
+                      return 'https://assets.mixkit.co/videos/preview/mixkit-girl-running-on-isolated-street-backlight-41584-large.mp4';
+                    case 'vid_lookbook':
+                      return 'https://assets.mixkit.co/videos/preview/mixkit-fashion-woman-with-silver-glitter-makeup-40156-large.mp4';
+                    case 'vid_backstage':
+                      return 'https://assets.mixkit.co/videos/preview/mixkit-video-of-a-woman-posing-with-colorful-light-42284-large.mp4';
+                    case 'vid_studio':
+                      return 'https://assets.mixkit.co/videos/preview/mixkit-fashion-woman-posing-in-a-futuristic-ambient-40155-large.mp4';
+                    default:
+                      return '';
+                  }
+                };
+
                 return (
                   <div
                     key={tmpl.id}
                     onClick={() => onUpdateFlowData({ selectedVideoTemplate: tmpl.name })}
-                    className={`border p-4 rounded-[12px] bg-[#0F0F11] space-y-3 cursor-pointer transition-all ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)]' : 'border-[rgba(255,255,255,0.08)] hover:border-white'}`}
+                    className={`group border rounded-[16px] bg-[#0F0F11] overflow-hidden flex flex-col h-full cursor-pointer transition-all ${isSelected ? 'border-[#C9A35F] bg-[rgba(201,163,95,0.04)] ring-1 ring-[#C9A35F]/30' : 'border-[rgba(255,255,255,0.08)] hover:border-white/20'}`}
                   >
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-bold text-[#F8F8F8]">{tmpl.name}</span>
-                      {isSelected && (
-                        <span className="text-[9px] bg-[#C9A35F] text-[#050505] rounded px-1.5 font-bold uppercase tracking-wider font-sans">Выбран</span>
+                    <div className="p-3.5 flex justify-between items-center bg-[#0C0C0E]/50 border-b border-[rgba(255,255,255,0.04)]">
+                      <span className="text-xs font-bold text-[#F8F8F8] tracking-wide">{tmpl.name}</span>
+                      {isSelected ? (
+                        <span className="text-[9px] bg-[#C9A35F] text-[#050505] rounded-full px-2 py-0.5 font-bold uppercase tracking-wider font-sans shadow-sm">Выбран</span>
+                      ) : (
+                        <span className="text-[9px] text-[#8B8B93] group-hover:text-white transition-colors uppercase tracking-wider">Выбрать</span>
                       )}
                     </div>
-                    
-                    <div className="aspect-[9/16] max-h-48 bg-[#16161A] border border-[rgba(255,255,255,0.05)] rounded-[6px] flex flex-col justify-center items-center text-center p-3 relative overflow-hidden">
-                      <Play size={20} className="text-[#C9A35F]" />
-                      <span className="text-[10px] font-mono mt-2 text-[#8B8B93] uppercase tracking-widest">{tmpl.specs}</span>
+
+                    <div className="relative aspect-[9/16] w-full bg-[#16161A] border-b border-[rgba(255,255,255,0.04)] overflow-hidden flex flex-col justify-center items-center">
+                      <video
+                        src={getTemplateVideoUrl(tmpl.id)}
+                        loop
+                        muted
+                        playsInline
+                        autoPlay
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity"
+                      />
+                      {/* Dark overlay gradients */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
+
+                      {/* Video Specs Overlay bottom aligned */}
+                      <div className="absolute bottom-3 left-3 right-3 z-10">
+                        <span className="text-[9px] font-mono text-[#F8F8F8] leading-tight break-words antialiased bg-black/50 px-2 py-1 rounded-[4px] backdrop-blur-[2px] inline-block">
+                          {tmpl.specs}
+                        </span>
+                      </div>
+
+                      {/* Small visual camera overlay decoration */}
+                      <div className="absolute top-3 right-3 z-10 opacity-30 group-hover:opacity-75 transition-opacity">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#C9A35F]" />
+                      </div>
+
+                      {/* Play overlay button */}
+                      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center z-10 transition-transform group-hover:scale-110 pointer-events-none">
+                        <div className="w-10 h-10 rounded-full bg-black/60 border border-[rgba(255,255,255,0.15)] flex items-center justify-center backdrop-blur-sm shadow-lg">
+                          <Play size={16} className="text-[#C9A35F] fill-[#C9A35F]" />
+                        </div>
+                      </div>
                     </div>
 
-                    <p className="text-[11px] text-[#8B8B93] leading-relaxed font-sans">{tmpl.description}</p>
+                    <div className="p-3.5 space-y-1 bg-[#0F0F11] flex-1 flex flex-col justify-between">
+                      <p className="text-[11px] text-[#B5B5BC] leading-relaxed font-sans">{tmpl.description}</p>
+                      <div className="text-[9px] font-mono text-[#8B8B93]/85 pt-2 border-t border-[rgba(255,255,255,0.03)] uppercase tracking-wider flex justify-between items-center mt-2">
+                        <span>Продолжительность</span>
+                        <span className="text-[#F8F8F8] font-bold">15 сек</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
-
-
           </div>
         )}
 
@@ -1029,7 +1112,7 @@ export default function CreatePage({
         {((currentStepIndex === 5 && !isKit) || currentStepIndex === 6) && (
           <div className="space-y-6 font-sans">
             <div>
-              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Финальный обзор продакшена (Бриф)</h2>
+              <h2 className="text-lg font-display font-medium text-[#F8F8F8]">Финальный обзор продакшена</h2>
               <p className="text-xs text-[#8B8B93] mt-0.5">
                 Пожалуйста, внимательно изучите состав заказа. Запуск зарезервирует необходимую сумму кредитов с баланса Вашего аккаунта.
               </p>
@@ -1100,8 +1183,8 @@ export default function CreatePage({
       </div>
 
       {/* 3. Right Column: Overview Drawer panel */}
-      <div className="w-full md:w-[280px] bg-[#0F0F11] border-t md:border-t-0 md:border-l border-[rgba(255,255,255,0.08)] p-5 space-y-5 text-xs shrink-0 select-none font-sans">
-        <span className="text-[10px] font-mono text-[#8B8B93] uppercase tracking-wider block">Черновик в прямом эфире</span>
+      <div className="hidden md:block w-full md:w-[280px] bg-[#0F0F11] border-t md:border-t-0 md:border-l border-[rgba(255,255,255,0.08)] p-5 space-y-5 text-xs shrink-0 select-none font-sans">
+        <span className="text-[10px] font-mono text-[#8B8B93] uppercase tracking-wider block">Черновик</span>
 
         {/* Selected model overview details */}
         <div className="space-y-3">
@@ -1127,8 +1210,9 @@ export default function CreatePage({
           </span>
           {activeFlow.selectedKit ? (
             <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] space-y-1">
-              <div className="font-semibold text-[#F8F8F8] max-w-[180px] truncate">{activeFlow.selectedKit.name}</div>
-              <div className="text-[#8B8B93] font-mono text-[10px]">{activeFlow.selectedKit.items.length} фото в усадке</div>
+              <div className="font-semibold text-[#F8F8F8] max-w-[180px] truncate">
+                {activeFlow.lookId && activeFlow.lookName ? activeFlow.lookName : activeFlow.selectedKit.name}
+              </div>
             </div>
           ) : (
             <div className="text-[#8B8B93] italic">Одежда не укомплектована</div>
@@ -1167,6 +1251,23 @@ export default function CreatePage({
             <div className="text-[#8B8B93] italic">Позы не зафиксированы</div>
           )}
         </div>
+
+        {/* Video Template selection check (only shown if isKit is true) */}
+        {isKit && (
+          <div className="space-y-3">
+            <span className="block border-b border-[rgba(255,255,255,0.08)] pb-1.5 font-bold text-[#8B8B93] uppercase tracking-widest text-[9px]">
+              Видео-шаблон
+            </span>
+            {activeFlow.selectedVideoTemplate ? (
+              <div className="bg-[#16161A] p-2.5 border border-[rgba(255,255,255,0.05)] rounded-[6px] space-y-1">
+                <div className="font-semibold text-[#F8F8F8]">{activeFlow.selectedVideoTemplate}</div>
+                <div className="text-[#8B8B93] font-mono text-[10px]">15 секунд (9:16)</div>
+              </div>
+            ) : (
+              <div className="text-[#8B8B93] italic">Видео-шаблон не выбран</div>
+            )}
+          </div>
+        )}
 
         {/* missing indicators validator blocks */}
         <div className="pt-4 border-t border-[rgba(255,255,255,0.08)] space-y-2 font-sans">
@@ -1212,7 +1313,13 @@ export default function CreatePage({
               bottomBarText = 'Продолжить с этим комплектом';
             }
           } else {
-            if (activeFlow.selectedKit) {
+            const selectedLook = looks.find(l => l.id === activeFlow.lookId || (activeFlow.selectedKit?.id === l.kitId && activeFlow.selectedModel?.id === l.modelId));
+            if (selectedLook) {
+              showBottomBar = true;
+              bottomBarDescription = `Выбран готовый образ: ${selectedLook.name}`;
+              bottomBarAction = () => onStepChange(2);
+              bottomBarText = 'Использовать этот образ';
+            } else if (activeFlow.selectedKit) {
               showBottomBar = true;
               bottomBarDescription = `Выбрана одежда: ${activeFlow.selectedKit.name}`;
               bottomBarAction = () => onStepChange(2);
@@ -1250,6 +1357,11 @@ export default function CreatePage({
           bottomBarDescription = `Бриф заполнен и готов`;
           bottomBarAction = () => onLaunchProduction(activeFlow.type);
           bottomBarText = `Создать ${isKit ? 'комплект (Фото + Видео)' : '7 готовых фото'}`;
+        }
+
+        const isFinalStep = (isKit && currentStepIndex === 6) || (!isKit && currentStepIndex === 5);
+        if (!isFinalStep && showBottomBar) {
+          bottomBarText = 'Продолжить';
         }
 
         if (!showBottomBar) return null;
