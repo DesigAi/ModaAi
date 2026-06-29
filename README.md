@@ -13,6 +13,10 @@ https://github.com/skillet07/ai-fashion-content-generation-telegram-bot
 
 See [`docs/AUDIT.md`](docs/AUDIT.md) for the full-stack audit, reusable backend modules, web/backend gaps, and the exact blocker for live backend reuse.
 
+## Product / UX specs
+
+- [`docs/specs/desktop-web-platform-ux-spec.md`](docs/specs/desktop-web-platform-ux-spec.md) — target desktop web MVP/product UX specification. This is the future product source of truth, not a claim that the current demo PR already implements every requirement.
+
 ## Demo mode
 
 The app ships with an explicit typed demo API layer:
