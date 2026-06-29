@@ -90,7 +90,7 @@ export default function TariffsPage({
       packageName: pk.name,
       amount: pk.price,
       network: 'USDT-TON',
-      address: 'UQAhS_modai_team_prod_ton_wallet_9m2a',
+      address: 'DEMO_USDT_TON_WALLET_NOT_FOR_PAYMENT',
       comment: randomComment,
       status: 'pending',
       txHash: '',
