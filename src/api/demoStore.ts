@@ -149,13 +149,16 @@ function migrateCredits(input: unknown): CreditsState {
     return modern;
   }
 
-  const legacyBalance = Number(parsed.balance ?? 0);
-  const legacyReserved = Number(parsed.reserved ?? 0);
+  const legacyBalance = Math.max(0, Number(parsed.balance ?? 0));
+  const legacyReserved = Math.max(0, Number(parsed.reserved ?? 0));
+  const photoFromBalanceFraction = legacyBalance % 1 >= 0.5 ? 1 : 0;
+  const photoFromReservedFraction = legacyReserved % 1 >= 0.5 ? 1 : 0;
+
   return {
-    photoSetCredits: legacyBalance >= 0.5 && legacyBalance < 1 ? 1 : 0,
-    kitCredits: Math.max(0, Math.floor(legacyBalance)),
-    reservedPhotoSetCredits: legacyReserved >= 0.5 && legacyReserved < 1 ? 1 : 0,
-    reservedKitCredits: Math.max(0, Math.floor(legacyReserved)),
+    photoSetCredits: photoFromBalanceFraction,
+    kitCredits: Math.floor(legacyBalance),
+    reservedPhotoSetCredits: photoFromReservedFraction,
+    reservedKitCredits: Math.floor(legacyReserved),
   };
 }
 
