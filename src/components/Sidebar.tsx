@@ -1,12 +1,13 @@
 import React from 'react';
-import { Camera, PackageOpen, LayoutGrid, HeartHandshake, Settings, LogOut, Sparkles, Coins, Users } from 'lucide-react';
-import { formatCredits } from '../utils/creditFormatter';
+import { LayoutGrid, Settings, LogOut, Sparkles, Coins, Users } from 'lucide-react';
 
 interface SidebarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
-  creditBalance: number;
-  reservedCredits: number;
+  photoSetCredits: number;
+  kitCredits: number;
+  reservedPhotoSetCredits: number;
+  reservedKitCredits: number;
   userEmail: string;
   onLogout: () => void;
   onNewProductionClick: () => void;
@@ -15,8 +16,10 @@ interface SidebarProps {
 export default function Sidebar({
   currentTab,
   setCurrentTab,
-  creditBalance,
-  reservedCredits,
+  photoSetCredits,
+  kitCredits,
+  reservedPhotoSetCredits,
+  reservedKitCredits,
   userEmail,
   onLogout,
   onNewProductionClick
@@ -77,13 +80,24 @@ export default function Sidebar({
           Баланс аккаунта
         </div>
         
-        <div className="flex items-center justify-between text-xs font-sans font-medium">
-          <span className="text-[#B5B5BC]">Кредиты:</span>
-          <div className="text-right">
-            <span className="text-[#F8F8F8] font-bold font-mono">{formatCredits(creditBalance)} кр.</span>
-            {reservedCredits > 0 && (
-              <span className="block text-[10px] text-[#8B8B93] font-normal">({formatCredits(reservedCredits)} в резерве)</span>
-            )}
+        <div className="space-y-2 text-xs font-sans font-medium">
+          <div className="flex items-center justify-between">
+            <span className="text-[#B5B5BC]">Фото-кредиты:</span>
+            <div className="text-right">
+              <span className="text-[#F8F8F8] font-bold font-mono">{photoSetCredits}</span>
+              {reservedPhotoSetCredits > 0 && (
+                <span className="block text-[10px] text-[#8B8B93] font-normal">({reservedPhotoSetCredits} в резерве)</span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[#B5B5BC]">Комплект-кредиты:</span>
+            <div className="text-right">
+              <span className="text-[#F8F8F8] font-bold font-mono">{kitCredits}</span>
+              {reservedKitCredits > 0 && (
+                <span className="block text-[10px] text-[#8B8B93] font-normal">({reservedKitCredits} в резерве)</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

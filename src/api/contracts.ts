@@ -20,8 +20,10 @@ export interface DemoSession {
 }
 
 export interface CreditsState {
-  balance: number;
-  reserved: number;
+  photoSetCredits: number;
+  kitCredits: number;
+  reservedPhotoSetCredits: number;
+  reservedKitCredits: number;
 }
 
 export interface ModaWorkspace {
@@ -76,6 +78,7 @@ export interface AddLedgerEntryRequest {
 
 export interface AdminCreditAdjustmentRequest {
   action: 'add' | 'spend' | 'return_reserve';
+  type?: 'photo' | 'kit';
   amount?: number;
   customEvent?: LedgerEvent | string;
 }

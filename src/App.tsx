@@ -16,8 +16,10 @@ function applyWorkspaceSnapshot(workspace: ModaWorkspace, setters: {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   setUserEmail: React.Dispatch<React.SetStateAction<string>>;
   setInterfaceLanguage: React.Dispatch<React.SetStateAction<InterfaceLanguage>>;
-  setCreditBalance: React.Dispatch<React.SetStateAction<number>>;
-  setReservedCredits: React.Dispatch<React.SetStateAction<number>>;
+  setPhotoSetCredits: React.Dispatch<React.SetStateAction<number>>;
+  setKitCredits: React.Dispatch<React.SetStateAction<number>>;
+  setReservedPhotoSetCredits: React.Dispatch<React.SetStateAction<number>>;
+  setReservedKitCredits: React.Dispatch<React.SetStateAction<number>>;
   setSavedModels: React.Dispatch<React.SetStateAction<Model[]>>;
   setWardrobeItems: React.Dispatch<React.SetStateAction<WardrobeItem[]>>;
   setWardrobeKits: React.Dispatch<React.SetStateAction<WardrobeKit[]>>;
@@ -29,8 +31,10 @@ function applyWorkspaceSnapshot(workspace: ModaWorkspace, setters: {
   setters.setIsAuthenticated(workspace.session.isAuthenticated);
   setters.setUserEmail(workspace.session.email);
   setters.setInterfaceLanguage(workspace.session.interfaceLanguage);
-  setters.setCreditBalance(workspace.credits.balance);
-  setters.setReservedCredits(workspace.credits.reserved);
+  setters.setPhotoSetCredits(workspace.credits.photoSetCredits);
+  setters.setKitCredits(workspace.credits.kitCredits);
+  setters.setReservedPhotoSetCredits(workspace.credits.reservedPhotoSetCredits);
+  setters.setReservedKitCredits(workspace.credits.reservedKitCredits);
   setters.setSavedModels(workspace.models);
   setters.setWardrobeItems(workspace.wardrobeItems);
   setters.setWardrobeKits(workspace.wardrobeKits);
@@ -51,8 +55,10 @@ export default function App() {
   // ----------------------------------------
   // PORTFOLIO / PLATFORM WORKSPACE STATE
   // ----------------------------------------
-  const [creditBalance, setCreditBalance] = useState<number>(1.0);
-  const [reservedCredits, setReservedCredits] = useState<number>(0);
+  const [photoSetCredits, setPhotoSetCredits] = useState<number>(1);
+  const [kitCredits, setKitCredits] = useState<number>(1);
+  const [reservedPhotoSetCredits, setReservedPhotoSetCredits] = useState<number>(0);
+  const [reservedKitCredits, setReservedKitCredits] = useState<number>(0);
   const [savedModels, setSavedModels] = useState<Model[]>(INITIAL_MODELS);
   const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>(INITIAL_WARDROBE_ITEMS);
   const [wardrobeKits, setWardrobeKits] = useState<WardrobeKit[]>(INITIAL_WARDROBE_KITS);
@@ -74,8 +80,10 @@ export default function App() {
       setIsAuthenticated,
       setUserEmail,
       setInterfaceLanguage,
-      setCreditBalance,
-      setReservedCredits,
+      setPhotoSetCredits,
+      setKitCredits,
+      setReservedPhotoSetCredits,
+      setReservedKitCredits,
       setSavedModels,
       setWardrobeItems,
       setWardrobeKits,
@@ -105,7 +113,7 @@ export default function App() {
     if (!workspaceReady) return;
     modaApi.saveWorkspace({
       session: { isAuthenticated, email: userEmail, interfaceLanguage },
-      credits: { balance: creditBalance, reserved: reservedCredits },
+      credits: { photoSetCredits, kitCredits, reservedPhotoSetCredits, reservedKitCredits },
       models: savedModels,
       wardrobeItems,
       wardrobeKits,
@@ -118,7 +126,7 @@ export default function App() {
   }, [
     workspaceReady,
     isAuthenticated, userEmail, interfaceLanguage,
-    creditBalance, reservedCredits,
+    photoSetCredits, kitCredits, reservedPhotoSetCredits, reservedKitCredits,
     savedModels, wardrobeItems, wardrobeKits, looks, results, creditLedger,
     activeProductionFlow
   ]);
@@ -153,9 +161,14 @@ export default function App() {
     applyWorkspace(workspace);
   };
 
+  const getAvailableCredits = (type: 'photo' | 'kit') => (
+    type === 'photo' ? photoSetCredits : kitCredits
+  );
+
+  const hasAnyCredits = photoSetCredits > 0 || kitCredits > 0;
+
   // Click on "Новый продакшен" shortcut
   const handleNewProductionClick = () => {
-    const hasAnyCredits = creditBalance >= 0.5;
     if (!hasAnyCredits) {
       // If 0 credits, trigger blocked access modal prompt
       setShowAccessModal(true);
@@ -168,8 +181,7 @@ export default function App() {
   };
 
   const handleStartFlow = async (type: 'photo' | 'kit') => {
-    const cost = type === 'photo' ? 0.5 : 1.0;
-    if (creditBalance < cost) {
+    if (getAvailableCredits(type) < 1) {
       setShowInsufficientModal(true);
       return;
     }
@@ -204,7 +216,7 @@ export default function App() {
       const defaultModel = savedModels[0] || INITIAL_MODELS[0];
       const defaultKit = wardrobeKits[0] || INITIAL_WARDROBE_KITS[0];
       
-      const typeChoice: 'photo' | 'kit' = typeOverride || (creditBalance >= 1.0 ? 'kit' : 'photo');
+      const typeChoice: 'photo' | 'kit' = typeOverride || (kitCredits > 0 ? 'kit' : 'photo');
       onStartFlowWithPreset(typeChoice, defaultModel, defaultKit, 'Ускоренная съемка образов');
       return;
     }
@@ -212,13 +224,12 @@ export default function App() {
     const matchedModel = savedModels.find((m) => m.id === look.modelId) || savedModels[0];
     const matchedKit = wardrobeKits.find((k) => k.id === look.kitId) || wardrobeKits[0];
 
-    const typeChoice: 'photo' | 'kit' = typeOverride || (creditBalance >= 1.0 ? 'kit' : 'photo');
+    const typeChoice: 'photo' | 'kit' = typeOverride || (kitCredits > 0 ? 'kit' : 'photo');
     onStartFlowWithPreset(typeChoice, matchedModel, matchedKit, look.name);
   };
 
   const onStartFlowWithPreset = async (type: 'photo' | 'kit', model: Model, kit: WardrobeKit, lookName: string) => {
-    const cost = type === 'photo' ? 0.5 : 1.0;
-    if (creditBalance < cost) {
+    if (getAvailableCredits(type) < 1) {
       setShowInsufficientModal(true);
       return;
     }
@@ -244,8 +255,7 @@ export default function App() {
   const handleLaunchProduction = async (reserveType: 'photo' | 'kit') => {
     if (!activeProductionFlow || !activeProductionFlow.selectedModel || !activeProductionFlow.selectedKit) return;
 
-    const cost = reserveType === 'photo' ? 0.5 : 1.0;
-    if (creditBalance < cost) {
+    if (getAvailableCredits(reserveType) < 1) {
       alert('Недостаточно доступных кредитов для запуска.');
       return;
     }
@@ -326,7 +336,8 @@ export default function App() {
       case 'create':
         return (
           <CreatePage
-            creditBalance={creditBalance}
+            photoSetCredits={photoSetCredits}
+            kitCredits={kitCredits}
             savedModels={savedModels}
             wardrobeItems={wardrobeItems}
             wardrobeKits={wardrobeKits}
@@ -350,7 +361,7 @@ export default function App() {
             onDeleteLook={handleDeleteLook}
             onUpdateLookName={handleUpdateLookName}
             onNavigateToTariffs={() => setCurrentTab('tariffs')}
-            hasCredits={creditBalance >= 0.5}
+            hasCredits={hasAnyCredits}
           />
         );
       case 'results':
@@ -361,7 +372,7 @@ export default function App() {
             onRefundCredit={handleRefundCredit}
             onManualFixComplete={handleManualFixComplete}
             onGrantCompensation={async (typeChoice) => {
-              const count = typeChoice === 'photo' ? 0.5 : 1.0;
+              const count = 1;
               applyWorkspace(await modaApi.addCredits(typeChoice, count));
               applyWorkspace(await modaApi.addLedgerEntry({
                 event: 'support_compensation',
@@ -382,7 +393,7 @@ export default function App() {
               const matchedModel = (matchingLook ? savedModels.find((m) => m.id === matchingLook.modelId) : null) || (resultItem ? savedModels.find((m) => m.name === resultItem.modelName) : null) || savedModels[0];
               const matchedKit = (matchingLook ? wardrobeKits.find((k) => k.id === matchingLook.kitId) : null) || (resultItem ? wardrobeKits.find((k) => k.name === resultItem.lookName || resultItem.name.includes(k.name)) : null) || wardrobeKits[0];
 
-              const typeChoice: 'photo' | 'kit' = resultItem ? (resultItem.type as 'photo' | 'kit') : (creditBalance >= 1.0 ? 'kit' : 'photo');
+              const typeChoice: 'photo' | 'kit' = resultItem ? (resultItem.type as 'photo' | 'kit') : (kitCredits > 0 ? 'kit' : 'photo');
               const finalLookName = matchingLook ? matchingLook.name : (resultItem ? resultItem.lookName : 'Новый образ');
               const workspace = await modaApi.startProductionFlow({
                 type: typeChoice,
@@ -404,8 +415,10 @@ export default function App() {
       case 'tariffs':
         return (
           <TariffsPage
-            creditBalance={creditBalance}
-            reservedCredits={reservedCredits}
+            photoSetCredits={photoSetCredits}
+            kitCredits={kitCredits}
+            reservedPhotoSetCredits={reservedPhotoSetCredits}
+            reservedKitCredits={reservedKitCredits}
             ledger={creditLedger}
             addLedgerEntry={addLedgerEntry}
             incrementCredits={incrementCredits}
@@ -413,8 +426,8 @@ export default function App() {
               handleStartFlow(typeChosen);
               setCurrentTab('create');
             }}
-            onAdminAction={async (action, amount, customEvent) => {
-              const workspace = await modaApi.adminAdjustCredits({ action, amount, customEvent });
+            onAdminAction={async (action, amount, customEvent, type) => {
+              const workspace = await modaApi.adminAdjustCredits({ action, amount, customEvent, type });
               applyWorkspace(workspace);
             }}
           />
@@ -423,7 +436,8 @@ export default function App() {
         return (
           <SettingsPage
             userEmail={userEmail}
-            creditBalance={creditBalance}
+            photoSetCredits={photoSetCredits}
+            kitCredits={kitCredits}
             ledger={creditLedger}
             onLogout={handleLogout}
             onClearStorage={handleClearStorage}
@@ -449,8 +463,10 @@ export default function App() {
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
-        creditBalance={creditBalance}
-        reservedCredits={reservedCredits}
+        photoSetCredits={photoSetCredits}
+        kitCredits={kitCredits}
+        reservedPhotoSetCredits={reservedPhotoSetCredits}
+        reservedKitCredits={reservedKitCredits}
         userEmail={userEmail}
         onLogout={handleLogout}
         onNewProductionClick={handleNewProductionClick}
