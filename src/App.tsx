@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { InterfaceLanguage, Model, WardrobeItem, WardrobeKit, Look, LedgerItem, ResultItem, ActiveProductionFlow, ResultState } from './types';
+import { modaApi, ModaWorkspace } from './api';
 import { INITIAL_MODELS, INITIAL_WARDROBE_ITEMS, INITIAL_WARDROBE_KITS, INITIAL_LOOKS, INITIAL_LEDGER } from './mockData';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
@@ -10,124 +11,55 @@ import TariffsPage from './components/TariffsPage';
 import SettingsPage from './components/SettingsPage';
 import { Coins, Sparkles, LayoutGrid, Users, Settings, LogOut, Camera, AlertOctagon, HelpCircle } from 'lucide-react';
 
+
+function applyWorkspaceSnapshot(workspace: ModaWorkspace, setters: {
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  setUserEmail: React.Dispatch<React.SetStateAction<string>>;
+  setInterfaceLanguage: React.Dispatch<React.SetStateAction<InterfaceLanguage>>;
+  setCreditBalance: React.Dispatch<React.SetStateAction<number>>;
+  setReservedCredits: React.Dispatch<React.SetStateAction<number>>;
+  setSavedModels: React.Dispatch<React.SetStateAction<Model[]>>;
+  setWardrobeItems: React.Dispatch<React.SetStateAction<WardrobeItem[]>>;
+  setWardrobeKits: React.Dispatch<React.SetStateAction<WardrobeKit[]>>;
+  setLooks: React.Dispatch<React.SetStateAction<Look[]>>;
+  setResults: React.Dispatch<React.SetStateAction<ResultItem[]>>;
+  setCreditLedger: React.Dispatch<React.SetStateAction<LedgerItem[]>>;
+  setActiveProductionFlow: React.Dispatch<React.SetStateAction<ActiveProductionFlow | null>>;
+}) {
+  setters.setIsAuthenticated(workspace.session.isAuthenticated);
+  setters.setUserEmail(workspace.session.email);
+  setters.setInterfaceLanguage(workspace.session.interfaceLanguage);
+  setters.setCreditBalance(workspace.credits.balance);
+  setters.setReservedCredits(workspace.credits.reserved);
+  setters.setSavedModels(workspace.models);
+  setters.setWardrobeItems(workspace.wardrobeItems);
+  setters.setWardrobeKits(workspace.wardrobeKits);
+  setters.setLooks(workspace.looks);
+  setters.setResults(workspace.results);
+  setters.setCreditLedger(workspace.ledger);
+  setters.setActiveProductionFlow(workspace.activeProductionFlow);
+}
+
 export default function App() {
   // ----------------------------------------
   // AUTHENTICATION STATE
   // ----------------------------------------
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('modai_auth') === 'true';
-  });
-  const [userEmail, setUserEmail] = useState<string>(() => {
-    return localStorage.getItem('modai_email') || 'brand.director@modai.team';
-  });
-  const [interfaceLanguage, setInterfaceLanguage] = useState<InterfaceLanguage>(() => {
-    return (localStorage.getItem('modai_lang') as InterfaceLanguage) || 'ru';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string>('brand.director@modai.team');
+  const [interfaceLanguage, setInterfaceLanguage] = useState<InterfaceLanguage>('ru');
 
   // ----------------------------------------
   // PORTFOLIO / PLATFORM WORKSPACE STATE
   // ----------------------------------------
-  const [creditBalance, setCreditBalance] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_credit_balance');
-    if (saved !== null) {
-      return parseFloat(saved);
-    }
-    // Perform state migration from legacy variables if they exist
-    const legacyPhotoRaw = localStorage.getItem('modai_photo_credits');
-    const legacyKitRaw = localStorage.getItem('modai_kit_credits');
-    if (legacyPhotoRaw !== null || legacyKitRaw !== null) {
-      const legacyPhoto = legacyPhotoRaw ? parseFloat(legacyPhotoRaw) : 0;
-      const legacyKit = legacyKitRaw ? parseFloat(legacyKitRaw) : 0;
-      return (legacyPhoto * 0.5) + (legacyKit * 1.0);
-    }
-    // Default starting balance of 1.0 credit per user instructions
-    return 1.0;
-  });
-
-  const [reservedCredits, setReservedCredits] = useState<number>(() => {
-    const saved = localStorage.getItem('modai_reserved_credits');
-    if (saved !== null) {
-      return parseFloat(saved);
-    }
-    // Perform state migration from legacy reserved variables if they exist
-    const legacyPhotoResRaw = localStorage.getItem('modai_res_photo_credits');
-    const legacyKitResRaw = localStorage.getItem('modai_res_kit_credits');
-    if (legacyPhotoResRaw !== null || legacyKitResRaw !== null) {
-      const legacyPhotoRes = legacyPhotoResRaw ? parseFloat(legacyPhotoResRaw) : 0;
-      const legacyKitRes = legacyKitResRaw ? parseFloat(legacyKitResRaw) : 0;
-      return (legacyPhotoRes * 0.5) + (legacyKitRes * 1.0);
-    }
-    return 0;
-  });
-
-  const [savedModels, setSavedModels] = useState<Model[]>(() => {
-    const saved = localStorage.getItem('modai_models');
-    return saved ? JSON.parse(saved) : INITIAL_MODELS;
-  });
-  const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>(() => {
-    const saved = localStorage.getItem('modai_wardrobe_items');
-    return saved ? JSON.parse(saved) : INITIAL_WARDROBE_ITEMS;
-  });
-  const [wardrobeKits, setWardrobeKits] = useState<WardrobeKit[]>(() => {
-    const saved = localStorage.getItem('modai_wardrobe_kits');
-    return saved ? JSON.parse(saved) : INITIAL_WARDROBE_KITS;
-  });
-  const [looks, setLooks] = useState<Look[]>(() => {
-    const saved = localStorage.getItem('modai_looks');
-    return saved ? JSON.parse(saved) : INITIAL_LOOKS;
-  });
-  
-  // Start results with one ready item so the user can test download instantly
-  const [results, setResults] = useState<ResultItem[]>(() => {
-    const saved = localStorage.getItem('modai_results');
-    if (saved) return JSON.parse(saved);
-    
-    // Default initial template results
-    const defaultItem: ResultItem = {
-      id: 'res_demo_ready',
-      name: 'Летний шелковый рендер платья миди №1',
-      type: 'kit',
-      status: 'ready',
-      date: '17.06.2026 12:15',
-      location: 'Коста-дель-Соль',
-      posePack: 'Классика',
-      videoTemplate: 'Streetwear',
-      lookId: 'look_1',
-      lookName: 'Мария в Черном Шелке',
-      modelName: 'Мария Е.',
-      images: [
-        'Поза 1: Фронтальный ракурс',
-        'Поза 2: Левый полуоборот',
-        'Поза 3: Правый полуоборот',
-        'Поза 4: Ракурс спины',
-        'Поза 5: Портретная деталь',
-        'Поза 6: Фокус на ткань',
-        'Поза 7: Динамичный шаг'
-      ],
-      videoUrl: '15-секундное вертикальное AI-видео (1080p)',
-      cancelAllowed: false
-    };
-    return [defaultItem];
-  });
-
-  const [creditLedger, setCreditLedger] = useState<LedgerItem[]>(() => {
-    const saved = localStorage.getItem('modai_ledger');
-    const rawList: LedgerItem[] = saved ? JSON.parse(saved) : INITIAL_LEDGER;
-    const seenIds = new Set<string>();
-    return rawList.map((item, idx) => {
-      let uniqueId = item.id;
-      if (!uniqueId || seenIds.has(uniqueId)) {
-        uniqueId = `led_col_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`;
-      }
-      seenIds.add(uniqueId);
-      return { ...item, id: uniqueId };
-    });
-  });
-
-  const [activeProductionFlow, setActiveProductionFlow] = useState<ActiveProductionFlow | null>(() => {
-    const saved = localStorage.getItem('modai_active_flow');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [creditBalance, setCreditBalance] = useState<number>(1.0);
+  const [reservedCredits, setReservedCredits] = useState<number>(0);
+  const [savedModels, setSavedModels] = useState<Model[]>(INITIAL_MODELS);
+  const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>(INITIAL_WARDROBE_ITEMS);
+  const [wardrobeKits, setWardrobeKits] = useState<WardrobeKit[]>(INITIAL_WARDROBE_KITS);
+  const [looks, setLooks] = useState<Look[]>(INITIAL_LOOKS);
+  const [results, setResults] = useState<ResultItem[]>([]);
+  const [creditLedger, setCreditLedger] = useState<LedgerItem[]>(INITIAL_LEDGER);
+  const [activeProductionFlow, setActiveProductionFlow] = useState<ActiveProductionFlow | null>(null);
 
   // Navigation tab
   const [currentTab, setCurrentTab] = useState<string>('create');
@@ -135,24 +67,56 @@ export default function App() {
   // Modal alert rules
   const [showAccessModal, setShowAccessModal] = useState<boolean>(false);
   const [showInsufficientModal, setShowInsufficientModal] = useState<boolean>(false);
+  const [workspaceReady, setWorkspaceReady] = useState<boolean>(false);
 
-  // ----------------------------------------
-  // SYNC TO LOCAL STORAGE
-  // ----------------------------------------
+  const applyWorkspace = (workspace: ModaWorkspace) => {
+    applyWorkspaceSnapshot(workspace, {
+      setIsAuthenticated,
+      setUserEmail,
+      setInterfaceLanguage,
+      setCreditBalance,
+      setReservedCredits,
+      setSavedModels,
+      setWardrobeItems,
+      setWardrobeKits,
+      setLooks,
+      setResults,
+      setCreditLedger,
+      setActiveProductionFlow,
+    });
+  };
+
   useEffect(() => {
-    localStorage.setItem('modai_auth', isAuthenticated.toString());
-    localStorage.setItem('modai_email', userEmail);
-    localStorage.setItem('modai_lang', interfaceLanguage);
-    localStorage.setItem('modai_credit_balance', creditBalance.toString());
-    localStorage.setItem('modai_reserved_credits', reservedCredits.toString());
-    localStorage.setItem('modai_models', JSON.stringify(savedModels));
-    localStorage.setItem('modai_wardrobe_items', JSON.stringify(wardrobeItems));
-    localStorage.setItem('modai_wardrobe_kits', JSON.stringify(wardrobeKits));
-    localStorage.setItem('modai_looks', JSON.stringify(looks));
-    localStorage.setItem('modai_results', JSON.stringify(results));
-    localStorage.setItem('modai_ledger', JSON.stringify(creditLedger));
-    localStorage.setItem('modai_active_flow', activeProductionFlow ? JSON.stringify(activeProductionFlow) : '');
+    let isMounted = true;
+    modaApi.getWorkspace().then((workspace) => {
+      if (!isMounted) return;
+      applyWorkspace(workspace);
+      setWorkspaceReady(true);
+    }).catch((error) => {
+      console.error('Failed to load ModaAI workspace', error);
+      setWorkspaceReady(true);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!workspaceReady) return;
+    modaApi.saveWorkspace({
+      session: { isAuthenticated, email: userEmail, interfaceLanguage },
+      credits: { balance: creditBalance, reserved: reservedCredits },
+      models: savedModels,
+      wardrobeItems,
+      wardrobeKits,
+      looks,
+      results,
+      ledger: creditLedger,
+      activeProductionFlow,
+      updatedAt: Date.now(),
+    }).catch((error) => console.error('Failed to persist ModaAI workspace', error));
   }, [
+    workspaceReady,
     isAuthenticated, userEmail, interfaceLanguage,
     creditBalance, reservedCredits,
     savedModels, wardrobeItems, wardrobeKits, looks, results, creditLedger,
@@ -162,51 +126,31 @@ export default function App() {
   // ----------------------------------------
   // ACTIONS HANDLERS
   // ----------------------------------------
-  const handleLoginSuccess = (email: string, language: InterfaceLanguage) => {
-    setUserEmail(email);
-    setInterfaceLanguage(language);
-    setIsAuthenticated(true);
+  const handleLoginSuccess = async (email: string, language: InterfaceLanguage) => {
+    const workspace = await modaApi.loginDemo({ email, interfaceLanguage: language });
+    applyWorkspace(workspace);
     setCurrentTab('create');
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('modai_auth');
+  const handleLogout = async () => {
+    const workspace = await modaApi.logoutDemo();
+    applyWorkspace(workspace);
   };
 
-  const handleClearStorage = () => {
-    localStorage.clear();
-    setCreditBalance(1.0); // Reset to standard starting balance
-    setReservedCredits(0);
-    setSavedModels(INITIAL_MODELS);
-    setWardrobeItems(INITIAL_WARDROBE_ITEMS);
-    setWardrobeKits(INITIAL_WARDROBE_KITS);
-    setLooks(INITIAL_LOOKS);
-    setResults([]);
-    setCreditLedger(INITIAL_LEDGER);
-    setActiveProductionFlow(null);
+  const handleClearStorage = async () => {
+    const workspace = await modaApi.resetWorkspace();
+    applyWorkspace(workspace);
     setCurrentTab('create');
-    setIsAuthenticated(false);
   };
 
-  const incrementCredits = (type: 'photo' | 'kit', count: number) => {
-    setCreditBalance((prev) => prev + count);
+  const incrementCredits = async (type: 'photo' | 'kit', count: number) => {
+    const workspace = await modaApi.addCredits(type, count);
+    applyWorkspace(workspace);
   };
 
-  const addLedgerEntry = (event: string, type: 'photo' | 'kit', count: number, note: string) => {
-    const timestamp = new Date();
-    const formattedDate = `${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString().slice(0, 5)}`;
-    
-    const newItem: LedgerItem = {
-      id: `led_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      date: formattedDate,
-      event: event as any,
-      creditType: type,
-      count,
-      status: 'Выполнено',
-      note
-    };
-    setCreditLedger((prev) => [newItem, ...prev]);
+  const addLedgerEntry = async (event: string, type: 'photo' | 'kit', count: number, note: string) => {
+    const workspace = await modaApi.addLedgerEntry({ event, type, count, note });
+    applyWorkspace(workspace);
   };
 
   // Click on "Новый продакшен" shortcut
@@ -223,51 +167,34 @@ export default function App() {
     setCurrentTab('create');
   };
 
-  const handleStartFlow = (type: 'photo' | 'kit') => {
-    // Check if the user has enough credits of that type
+  const handleStartFlow = async (type: 'photo' | 'kit') => {
     const cost = type === 'photo' ? 0.5 : 1.0;
     if (creditBalance < cost) {
       setShowInsufficientModal(true);
       return;
     }
-
-    setActiveProductionFlow({
-      id: `flow_${Date.now()}`,
-      type,
-      currentStep: 0,
-      lookName: 'Черновик Образа ' + new Date().toLocaleDateString(),
-      locationSettings: {
-        temperature: 'Теплый',
-        hardness: 'Мягкий',
-        intensity: 'Приглушенный'
-      }
-    });
+    const workspace = await modaApi.startProductionFlow({ type });
+    applyWorkspace(workspace);
   };
 
-  const handleStepChange = (nextStep: number) => {
-    setActiveProductionFlow((prev) => {
-      if (!prev) return null;
-      return { ...prev, currentStep: nextStep };
-    });
+  const handleStepChange = async (nextStep: number) => {
+    const workspace = await modaApi.updateProductionFlow({ currentStep: nextStep });
+    applyWorkspace(workspace);
   };
 
-  const handleUpdateFlowData = (data: Partial<ActiveProductionFlow>) => {
-    setActiveProductionFlow((prev) => {
-      if (!prev) return null;
-      return { ...prev, ...data };
-    });
+  const handleUpdateFlowData = async (data: Partial<ActiveProductionFlow>) => {
+    const workspace = await modaApi.updateProductionFlow(data);
+    applyWorkspace(workspace);
   };
 
-  const handleSaveModel = (model: Model) => {
-    setSavedModels((prev) => [model, ...prev]);
+  const handleSaveModel = async (model: Model) => {
+    const workspace = await modaApi.saveModel(model);
+    applyWorkspace(workspace);
   };
 
-  const handleSaveLook = (look: Look) => {
-    setLooks((prev) => {
-      // Keep only unique saves to avoid duplicates
-      if (prev.some((x) => x.name.toLowerCase() === look.name.toLowerCase())) return prev;
-      return [look, ...prev];
-    });
+  const handleSaveLook = async (look: Look) => {
+    const workspace = await modaApi.saveLook(look);
+    applyWorkspace(workspace);
   };
 
   // Direct fast track production trigger from an existing Look card!
@@ -289,39 +216,32 @@ export default function App() {
     onStartFlowWithPreset(typeChoice, matchedModel, matchedKit, look.name);
   };
 
-  const onStartFlowWithPreset = (type: 'photo' | 'kit', model: Model, kit: WardrobeKit, lookName: string) => {
+  const onStartFlowWithPreset = async (type: 'photo' | 'kit', model: Model, kit: WardrobeKit, lookName: string) => {
     const cost = type === 'photo' ? 0.5 : 1.0;
     if (creditBalance < cost) {
       setShowInsufficientModal(true);
       return;
     }
-
-    setActiveProductionFlow({
-      id: `flow_fast_${Date.now()}`,
+    const workspace = await modaApi.startProductionFlow({
       type,
-      currentStep: 3, // Directly starts with step 4: Location! Fulfilling fast production specs
-      selectedModel: model,
-      selectedKit: kit,
-      lookName: `${lookName} (Быстрый перезапуск)`,
-      locationSettings: {
-        temperature: 'Теплый',
-        hardness: 'Мягкий',
-        intensity: 'Приглушенный'
-      }
+      preset: { model, kit, lookName: `${lookName} (Быстрый перезапуск)`, startStep: 3 },
     });
+    applyWorkspace(workspace);
     setCurrentTab('create');
   };
 
-  const handleDeleteLook = (lookId: string) => {
-    setLooks(looks.filter((x) => x.id !== lookId));
+  const handleDeleteLook = async (lookId: string) => {
+    const workspace = await modaApi.deleteLook(lookId);
+    applyWorkspace(workspace);
   };
 
-  const handleUpdateLookName = (lookId: string, newName: string) => {
-    setLooks(looks.map((l) => l.id === lookId ? { ...l, name: newName } : l));
+  const handleUpdateLookName = async (lookId: string, newName: string) => {
+    const workspace = await modaApi.updateLookName(lookId, newName);
+    applyWorkspace(workspace);
   };
 
   // Final review checkout trigger launch!
-  const handleLaunchProduction = (reserveType: 'photo' | 'kit') => {
+  const handleLaunchProduction = async (reserveType: 'photo' | 'kit') => {
     if (!activeProductionFlow || !activeProductionFlow.selectedModel || !activeProductionFlow.selectedKit) return;
 
     const cost = reserveType === 'photo' ? 0.5 : 1.0;
@@ -329,121 +249,73 @@ export default function App() {
       alert('Недостаточно доступных кредитов для запуска.');
       return;
     }
-    setCreditBalance((prev) => prev - cost);
-    setReservedCredits((prev) => prev + cost);
-    addLedgerEntry('reserve', reserveType, cost, `Блокировка ${cost.toString().replace('.', ',')} кр. под запуск "${activeProductionFlow.lookName}"`);
-
-    // Insert to active running results database
-    const newResult: ResultItem = {
-      id: `res_order_${Date.now()}`,
-      name: `Съемка: ${activeProductionFlow.lookName}`,
-      type: reserveType,
-      status: 'queued', // first state as specified
-      date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString().slice(0, 5),
-      location: activeProductionFlow.selectedLocation || 'Минималистичный люкс',
-      posePack: activeProductionFlow.selectedPosePack || 'Классика',
-      videoTemplate: activeProductionFlow.selectedVideoTemplate,
-      lookId: activeProductionFlow.lookId || 'look_any',
-      lookName: activeProductionFlow.lookName,
-      modelName: activeProductionFlow.selectedModel.name,
-      images: [],
-      cancelAllowed: true
-    };
-
-    setResults((prev) => [newResult, ...prev]);
-
-    // Clear active production flow to avoid lockout
-    setActiveProductionFlow(null);
-    // Move layout focus immediately to the Results board so they watch the timeline loader progress!
+    const workspace = await modaApi.launchProduction({ reserveType, flow: activeProductionFlow });
+    applyWorkspace(workspace);
     setCurrentTab('results');
   };
 
+  // Demo backend-compatible production lifecycle simulator.
+  useEffect(() => {
+    if (!workspaceReady) return;
+    const nextRunning = results.find((result) =>
+      ['queued', 'processing', 'quality_check', 'archive_preparing'].includes(result.status)
+    );
+    if (!nextRunning) return;
+
+    const statusOrder: ResultState[] = ['queued', 'processing', 'quality_check', 'archive_preparing', 'ready'];
+    const currentIndex = statusOrder.indexOf(nextRunning.status);
+    const nextStatus = statusOrder[Math.min(currentIndex + 1, statusOrder.length - 1)];
+    const timer = window.setTimeout(async () => {
+      const workspace = await modaApi.advanceResultStatus({
+        id: nextRunning.id,
+        status: nextStatus,
+        extraData: { stepIndex: Math.max(0, currentIndex + 1) },
+      });
+      applyWorkspace(workspace);
+    }, 1400);
+
+    return () => window.clearTimeout(timer);
+  }, [workspaceReady, results]);
+
   // Admin / Support ticket resolution handlers
-  const handleUpdateResultStatus = (id: string, status: ResultState, extraData?: Partial<ResultItem>) => {
-    setResults((prev) =>
-      prev.map((r) => {
-        if (r.id === id) {
-          const oldStatus = r.status;
-          const nextItem = { ...r, status, ...extraData };
-          
-          // If moving from process reservation state to finished ready state, officially spend the credits
-          if (status === 'ready' && oldStatus !== 'ready') {
-            const cost = r.type === 'photo' ? 0.5 : 1.0;
-            setReservedCredits((k) => Math.max(0, k - cost));
-            addLedgerEntry('spend_confirmed', r.type, cost, `Подтверждение списания ${cost.toString().replace('.', ',')} кр. для пака "${r.name}"`);
-          }
-          return nextItem;
-        }
-        return r;
-      })
-    );
+  const handleUpdateResultStatus = async (id: string, status: ResultState, extraData?: Partial<ResultItem>) => {
+    const workspace = await modaApi.advanceResultStatus({ id, status, extraData });
+    applyWorkspace(workspace);
   };
 
-  const handleRefundCredit = (result: ResultItem) => {
-    // Release reserve, return to cash balance
-    const cost = result.type === 'photo' ? 0.5 : 1.0;
-    setReservedCredits((p) => Math.max(0, p - cost));
-    setCreditBalance((p) => p + cost);
-    addLedgerEntry('reserve_release', result.type, cost, `Резерв снят: Возврат ${cost.toString().replace('.', ',')} кр. за тикет "${result.name}"`);
-
-    handleUpdateResultStatus(result.id, 'failed');
+  const handleRefundCredit = async (result: ResultItem) => {
+    const workspace = await modaApi.refundResult(result);
+    applyWorkspace(workspace);
   };
 
-  const handleManualFixComplete = (result: ResultItem) => {
-    // Keep spend reserved but turn result ready!
-    let mockImages = [
-      'Поза 1: Ручная ретушь складок',
-      'Поза 2: Левый полуоборот ретушь',
-      'Поза 3: Правый полуоборот ретушь',
-      'Поза 4: Ракурс спины (исправлен)',
-      'Поза 5: Портретная деталь ретушь',
-      'Поза 6: Фокус на ткань ретушь',
-      'Поза 7: Динамичный шаг ретушь'
-    ];
-    let extra: Partial<ResultItem> = {
-      images: mockImages
-    };
-    if (result.type === 'kit') {
-      extra.videoUrl = '15-секундное видео (Ручная склейка кадров поддержки)';
-    }
-
-    handleUpdateResultStatus(result.id, 'ready', extra);
+  const handleManualFixComplete = async (result: ResultItem) => {
+    const workspace = await modaApi.manualFixResult(result);
+    applyWorkspace(workspace);
   };
 
-  const handleWardrobeKitCreate = (newKit: WardrobeKit) => {
-    setWardrobeKits([newKit, ...wardrobeKits]);
+  const handleWardrobeKitCreate = async (newKit: WardrobeKit) => {
+    const workspace = await modaApi.saveWardrobeKit(newKit);
+    applyWorkspace(workspace);
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    setWardrobeItems(wardrobeItems.filter((x) => x.id !== itemId));
+  const handleDeleteItem = async (itemId: string) => {
+    const workspace = await modaApi.deleteWardrobeItem(itemId);
+    applyWorkspace(workspace);
   };
 
-  const handleDeleteKit = (kitId: string) => {
-    setWardrobeKits(wardrobeKits.filter((x) => x.id !== kitId));
+  const handleDeleteKit = async (kitId: string) => {
+    const workspace = await modaApi.deleteWardrobeKit(kitId);
+    applyWorkspace(workspace);
   };
 
-  const handleToggleHideItem = (itemId: string) => {
-    setWardrobeItems(
-      wardrobeItems.map((itm) => {
-        if (itm.id === itemId) {
-          const nextStatus = itm.usageStatus === 'hidden' ? 'active' : 'hidden';
-          return { ...itm, usageStatus: nextStatus };
-        }
-        return itm;
-      })
-    );
+  const handleToggleHideItem = async (itemId: string) => {
+    const workspace = await modaApi.toggleWardrobeItemVisibility(itemId);
+    applyWorkspace(workspace);
   };
 
-  const handleToggleHideKit = (kitId: string) => {
-    setWardrobeKits(
-      wardrobeKits.map((kit) => {
-        if (kit.id === kitId) {
-          const nextStatus = kit.usageStatus === 'hidden' ? 'active' : 'hidden';
-          return { ...kit, usageStatus: nextStatus };
-        }
-        return kit;
-      })
-    );
+  const handleToggleHideKit = async (kitId: string) => {
+    const workspace = await modaApi.toggleWardrobeKitVisibility(kitId);
+    applyWorkspace(workspace);
   };
 
   // ----------------------------------------
@@ -467,7 +339,7 @@ export default function App() {
             onSaveLook={handleSaveLook}
             onLaunchProduction={handleLaunchProduction}
             onNavigateToTariffs={() => setCurrentTab('tariffs')}
-            onCancelFlow={() => setActiveProductionFlow(null)}
+            onCancelFlow={async () => applyWorkspace(await modaApi.clearProductionFlow())}
           />
         );
       case 'looks':
@@ -488,42 +360,43 @@ export default function App() {
             onUpdateResultStatus={handleUpdateResultStatus}
             onRefundCredit={handleRefundCredit}
             onManualFixComplete={handleManualFixComplete}
-            onGrantCompensation={(typeChoice) => {
+            onGrantCompensation={async (typeChoice) => {
               const count = typeChoice === 'photo' ? 0.5 : 1.0;
-              setCreditBalance((p) => p + count);
-              addLedgerEntry('support_compensation', typeChoice, count, 'Ручное начисление компенсации');
+              applyWorkspace(await modaApi.addCredits(typeChoice, count));
+              applyWorkspace(await modaApi.addLedgerEntry({
+                event: 'support_compensation',
+                type: typeChoice,
+                count,
+                note: 'Ручное начисление компенсации',
+              }));
             }}
             onConfirmSpendDirect={(res) => {
               handleUpdateResultStatus(res.id, 'ready');
             }}
-            onStartWithLookId={(lookId, resultItem) => {
+            onStartWithLookId={async (lookId, resultItem) => {
               let matchingLook = looks.find((l) => l.id === lookId);
               if (!matchingLook && resultItem) {
                 matchingLook = looks.find((l) => l.name === resultItem.lookName);
               }
-              
+
               const matchedModel = (matchingLook ? savedModels.find((m) => m.id === matchingLook.modelId) : null) || (resultItem ? savedModels.find((m) => m.name === resultItem.modelName) : null) || savedModels[0];
               const matchedKit = (matchingLook ? wardrobeKits.find((k) => k.id === matchingLook.kitId) : null) || (resultItem ? wardrobeKits.find((k) => k.name === resultItem.lookName || resultItem.name.includes(k.name)) : null) || wardrobeKits[0];
-              
+
               const typeChoice: 'photo' | 'kit' = resultItem ? (resultItem.type as 'photo' | 'kit') : (creditBalance >= 1.0 ? 'kit' : 'photo');
               const finalLookName = matchingLook ? matchingLook.name : (resultItem ? resultItem.lookName : 'Новый образ');
-              
-              setActiveProductionFlow({
-                id: `flow_fast_${Date.now()}`,
+              const workspace = await modaApi.startProductionFlow({
                 type: typeChoice,
-                currentStep: 3, // Starts with step 4: Location for high speed edits
-                selectedModel: matchedModel,
-                selectedKit: matchedKit,
-                lookName: `${finalLookName} (Перезапуск)`,
-                selectedLocation: resultItem?.location || 'Коста-дель-Соль',
-                selectedPosePack: resultItem?.posePack || 'Классика',
-                selectedVideoTemplate: resultItem?.videoTemplate,
-                locationSettings: {
-                  temperature: 'Теплый',
-                  hardness: 'Мягкий',
-                  intensity: 'Приглушенный'
-                }
+                preset: {
+                  model: matchedModel,
+                  kit: matchedKit,
+                  lookName: `${finalLookName} (Перезапуск)`,
+                  startStep: 3,
+                  selectedLocation: resultItem?.location || 'Коста-дель-Соль',
+                  selectedPosePack: resultItem?.posePack || 'Классика',
+                  selectedVideoTemplate: resultItem?.videoTemplate,
+                },
               });
+              applyWorkspace(workspace);
               setCurrentTab('create');
             }}
           />
@@ -540,31 +413,9 @@ export default function App() {
               handleStartFlow(typeChosen);
               setCurrentTab('create');
             }}
-            onAdminAction={(action, amount, customEvent) => {
-              if (action === 'add' && amount) {
-                setCreditBalance((prev) => prev + amount);
-                const eventType = customEvent || 'grant';
-                const note = eventType === 'marketing_grant' 
-                  ? 'Маркетинговые промо-кредиты (начисление)' 
-                  : eventType === 'support_compensation'
-                  ? 'Компенсация техподдержки за технический перезапуск'
-                  : `Ручное начисление ${amount.toString().replace('.', ',')} кр. администратором`;
-                addLedgerEntry(eventType, 'photo', amount, note);
-              } else if (action === 'spend' && amount) {
-                if (amount === creditBalance) {
-                  setCreditBalance(0);
-                  addLedgerEntry('support_hold', 'photo', creditBalance, 'Полное списание баланса администратором');
-                } else {
-                  setCreditBalance((prev) => Math.max(0, prev - amount));
-                  addLedgerEntry('support_hold', 'photo', amount, `Ручное списание ${amount.toString().replace('.', ',')} кр. администратором`);
-                }
-              } else if (action === 'return_reserve') {
-                if (reservedCredits > 0) {
-                  setCreditBalance((prev) => prev + reservedCredits);
-                  addLedgerEntry('reserve_release', 'photo', reservedCredits, `Возврат оставшегося резерва в объеме ${reservedCredits.toString().replace('.', ',')} кр.`);
-                  setReservedCredits(0);
-                }
-              }
+            onAdminAction={async (action, amount, customEvent) => {
+              const workspace = await modaApi.adminAdjustCredits({ action, amount, customEvent });
+              applyWorkspace(workspace);
             }}
           />
         );
