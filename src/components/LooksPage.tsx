@@ -355,7 +355,7 @@ export default function LooksPage({
                 </div>
                 <div className="pt-2 flex justify-between items-center border-t border-[rgba(255,255,255,0.05)] text-[10px] uppercase font-mono">
                   <span className="text-[#8B8B93]">Стоимость:</span>
-                  <span className="text-[#C9A35F] font-bold">0,5 кредита</span>
+                  <span className="text-[#C9A35F] font-bold">1 фото-кредит</span>
                 </div>
               </div>
 
@@ -380,7 +380,7 @@ export default function LooksPage({
                 </div>
                 <div className="pt-2 flex justify-between items-center border-t border-[rgba(255,255,255,0.05)] text-[10px] uppercase font-mono">
                   <span className="text-[#8B8B93]">Стоимость:</span>
-                  <span className="text-[#C9A35F] font-bold">1,0 кредит</span>
+                  <span className="text-[#C9A35F] font-bold">1 комплект-кредит</span>
                 </div>
               </div>
             </div>

@@ -1,11 +1,11 @@
 import React from 'react';
 import { InterfaceLanguage, LedgerItem } from '../types';
-import { Settings, ShieldCheck, Mail, Sliders, RefreshCw, Trash2 } from 'lucide-react';
-import { formatCredits } from '../utils/creditFormatter';
+import { ShieldCheck, Mail, Trash2 } from 'lucide-react';
 
 interface SettingsPageProps {
   userEmail: string;
-  creditBalance: number;
+  photoSetCredits: number;
+  kitCredits: number;
   ledger: LedgerItem[];
   onLogout: () => void;
   onClearStorage: () => void;
@@ -13,7 +13,8 @@ interface SettingsPageProps {
 
 export default function SettingsPage({
   userEmail,
-  creditBalance,
+  photoSetCredits,
+  kitCredits,
   ledger,
   onLogout,
   onClearStorage
@@ -125,8 +126,12 @@ export default function SettingsPage({
                 <span className="font-semibold text-[#F8F8F8]">17.06.2027</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#B5B5BC]">Кредиты:</span>
-                <span className="font-bold text-[#C9A35F] font-mono">{formatCredits(creditBalance)} кр.</span>
+                <span className="text-[#B5B5BC]">Фото-кредиты:</span>
+                <span className="font-bold text-[#C9A35F] font-mono">{photoSetCredits}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#B5B5BC]">Комплект-кредиты:</span>
+                <span className="font-bold text-[#C9A35F] font-mono">{kitCredits}</span>
               </div>
             </div>
           </div>

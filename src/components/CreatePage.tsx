@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Model, WardrobeKit, WardrobeItem, ControlledLocationSettings, ActiveProductionFlow, Look } from '../types';
 import { LOCATION_CATEGORIES, POSE_PACKS, VIDEO_TEMPLATES } from '../mockData';
 import { Sparkles, Users, Shirt, MapPin, CheckCircle, Info, RefreshCw, Trash2, Sliders, AlertTriangle, Play, ChevronRight, Check, UploadCloud } from 'lucide-react';
-import { formatCredits, formatCreditsWithLabel } from '../utils/creditFormatter';
+
 
 interface CreatePageProps {
-  creditBalance: number;
+  photoSetCredits: number;
+  kitCredits: number;
   savedModels: Model[];
   wardrobeItems: WardrobeItem[];
   wardrobeKits: WardrobeKit[];
@@ -22,7 +23,8 @@ interface CreatePageProps {
 }
 
 export default function CreatePage({
-  creditBalance,
+  photoSetCredits,
+  kitCredits,
   savedModels,
   wardrobeItems,
   wardrobeKits,
@@ -237,7 +239,7 @@ export default function CreatePage({
           </p>
         </div>
 
-        {creditBalance < 0.5 ? (
+        {photoSetCredits === 0 && kitCredits === 0 ? (
           <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[12px] p-8 text-center max-w-md mx-auto space-y-4">
             <h3 className="text-sm font-semibold text-[#F8F8F8]">У вас пока нет активных кредитов.</h3>
             <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
@@ -261,7 +263,7 @@ export default function CreatePage({
                 <div className="flex justify-between items-start">
                   <h3 className="text-md font-display font-medium text-[#F8F8F8]">Пакет на 7 фотографий</h3>
                   <span className="text-[10px] font-mono bg-[rgba(201,163,95,0.12)] text-[#C9A35F] py-1 px-2.5 rounded-[4px] font-bold border border-[rgba(201,163,95,0.2)]">
-                    0,5 кредита
+                    1 фото-кредит
                   </span>
                 </div>
                 <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
@@ -273,11 +275,11 @@ export default function CreatePage({
                 </div>
               </div>
               <button
-                disabled={creditBalance < 0.5}
+                disabled={photoSetCredits < 1}
                 onClick={() => onStartFlow('photo')}
                 className="w-full h-[40px] bg-[#C9A35F] disabled:bg-[#1A1A1D] disabled:text-[#8B8B93] disabled:border-transparent hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all mt-4 select-none active:translate-y-[1px] cursor-pointer"
               >
-                {creditBalance >= 0.5 ? 'Запустить съемку (7 фото)' : 'Недостаточно кредитов'}
+                {photoSetCredits >= 1 ? 'Создать 7 фото' : 'Недостаточно фото-кредитов'}
               </button>
             </div>
 
@@ -287,7 +289,7 @@ export default function CreatePage({
                 <div className="flex justify-between items-start">
                   <h3 className="text-md font-display font-medium text-[#F8F8F8]">Production-комплект</h3>
                   <span className="text-[10px] font-mono bg-[rgba(255,255,255,0.08)] text-[#F8F8F8] py-1 px-2.5 rounded-[4px] font-bold border border-[rgba(255,255,255,0.12)]">
-                    1 кредит
+                    1 комплект-кредит
                   </span>
                 </div>
                 <p className="text-xs text-[#8B8B93] leading-relaxed font-sans">
@@ -299,11 +301,11 @@ export default function CreatePage({
                 </div>
               </div>
               <button
-                disabled={creditBalance < 1}
+                disabled={kitCredits < 1}
                 onClick={() => onStartFlow('kit')}
                 className="w-full h-[40px] bg-[#C9A35F] disabled:bg-[#1A1A1D] disabled:text-[#8B8B93] disabled:border-transparent hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all mt-4 select-none active:translate-y-[1px] cursor-pointer"
               >
-                {creditBalance >= 1 ? 'Запустить комплект (Фото + Видео)' : 'Недостаточно кредитов'}
+                {kitCredits >= 1 ? 'Создать production-комплект' : 'Недостаточно комплект-кредитов'}
               </button>
             </div>
 
@@ -1166,10 +1168,10 @@ export default function CreatePage({
               <div className="p-3.5 bg-[rgba(201,163,95,0.08)] border border-[rgba(201,163,95,0.2)] text-white rounded-[8px] font-mono text-[11px] leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="space-y-0.5 font-sans">
                   <div className="text-[#C9A35F] font-bold">
-                    {isKit ? 'Будет зарезервирован: 1 кредит' : 'Будет зарезервировано: 0,5 кредита'}
+                    {isKit ? 'Будет зарезервирован: 1 комплект-кредит' : 'Будет зарезервирован: 1 фото-кредит'}
                   </div>
                   <div className="text-[#8B8B93] text-[10px]">
-                    После запуска останется: {formatCreditsWithLabel(Math.max(0, creditBalance - (isKit ? 1 : 0.5)))}
+                    После запуска останется: {isKit ? `${Math.max(0, kitCredits - 1)} комплект-кредитов` : `${Math.max(0, photoSetCredits - 1)} фото-кредитов`}
                   </div>
                 </div>
                 <span className="text-[#8B8B93] text-[10px] uppercase font-bold tracking-wider">Списание только после Ready</span>

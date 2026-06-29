@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { PaymentIntent, PaymentState, LedgerItem } from '../types';
 import { Coins, Copy, QrCode, ArrowRight, CheckCircle, AlertOctagon, HelpCircle, Activity, ChevronRight, ChevronLeft, Check } from 'lucide-react';
-import { formatCredits, getCreditNoun, formatCreditsWithLabel } from '../utils/creditFormatter';
+
 
 interface TariffsPageProps {
-  creditBalance: number;
-  reservedCredits: number;
+  photoSetCredits: number;
+  kitCredits: number;
+  reservedPhotoSetCredits: number;
+  reservedKitCredits: number;
   ledger: LedgerItem[];
   addLedgerEntry: (event: string, type: 'photo' | 'kit', count: number, note: string) => void;
   incrementCredits: (type: 'photo' | 'kit', count: number) => void;
   onStartProduction: (type: 'photo' | 'kit') => void;
-  onAdminAction?: (action: 'add' | 'spend' | 'return_reserve', amount?: number, customEvent?: string) => void;
+  onAdminAction?: (action: 'add' | 'spend' | 'return_reserve', amount?: number, customEvent?: string, type?: 'photo' | 'kit') => void;
 }
 
 export default function TariffsPage({
-  creditBalance,
-  reservedCredits,
+  photoSetCredits,
+  kitCredits,
+  reservedPhotoSetCredits,
+  reservedKitCredits,
   ledger,
   addLedgerEntry,
   incrementCredits,
@@ -38,9 +42,9 @@ export default function TariffsPage({
     {
       id: 'pack_7_photos',
       name: 'Попробовать съемку на одном образе',
-      creditsLabel: '7 фото (на баланс: +0,5 кредита)',
+      creditsLabel: '7 фото (на баланс: +1 фото-кредит)',
       price: '5 USDT',
-      creditsCount: 0.5,
+      creditsCount: 1,
       type: 'photo' as const,
       description: 'После оплаты откроется flow создания фото. На выходе - один набор из 7 качественных fashion изображений без видео.',
       bestFor: 'первый тест качества, один товарный SKU',
@@ -50,7 +54,7 @@ export default function TariffsPage({
     {
       id: 'pack_3_kits',
       name: 'Запустить мини-кампанию',
-      creditsLabel: '3 комплекта (на баланс: +3 кредита)',
+      creditsLabel: '3 комплекта (на баланс: +3 комплект-кредита)',
       price: '100 USDT',
       creditsCount: 3,
       type: 'kit' as const,
@@ -62,7 +66,7 @@ export default function TariffsPage({
     {
       id: 'pack_30_kits',
       name: 'Собрать контент для коллекции',
-      creditsLabel: '30 комплектов (на баланс: +30 кредитов)',
+      creditsLabel: '30 комплектов (на баланс: +30 комплект-кредитов)',
       price: '1500 USDT',
       creditsCount: 30,
       type: 'kit' as const,
@@ -75,7 +79,7 @@ export default function TariffsPage({
 
   const handleSelectPackage = (pk: typeof packages[0]) => {
     const randomComment = `MODAI-${Math.floor(100000 + Math.random() * 900000)}`;
-    
+
     setSelectedPack({
       id: pk.id,
       name: pk.name,
@@ -111,7 +115,7 @@ export default function TariffsPage({
     if (state === 'confirmed') {
       updated.txHash = txHash || 'tx_hash_simulated_ok_' + Math.floor(Math.random() * 10000);
       setCheckoutIntent(updated);
-      
+
       // Update account credits
       if (selectedPack) {
         incrementCredits(selectedPack.type, selectedPack.creditsToAdd);
@@ -162,7 +166,7 @@ export default function TariffsPage({
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8 font-sans text-[#F8F8F8]">
-      
+
       {/* Title Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-5 gap-4">
         <div>
@@ -173,15 +177,16 @@ export default function TariffsPage({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[6px] px-4 py-2 text-xs">
-            <span className="text-[#8B8B93] block uppercase font-bold text-[9px] tracking-wider mb-0.5">Доступные кредиты</span>
-            <span className="text-base font-semibold text-[#F8F8F8] font-mono">
-              {formatCredits(creditBalance)} {getCreditNoun(creditBalance)}{' '}
-              {reservedCredits > 0 && (
-                <span className="text-[10px] text-[#8B8B93] font-normal font-sans ml-1">
-                  ({formatCredits(reservedCredits)} в работе)
-                </span>
+            <span className="text-[#8B8B93] block uppercase font-bold text-[9px] tracking-wider mb-1">Доступные кредиты</span>
+            <div className="text-sm font-semibold text-[#F8F8F8] font-mono space-y-0.5">
+              <div>Фото-кредитов: {photoSetCredits}</div>
+              <div>Комплект-кредитов: {kitCredits}</div>
+              {(reservedPhotoSetCredits > 0 || reservedKitCredits > 0) && (
+                <div className="text-[10px] text-[#8B8B93] font-normal font-sans">
+                  В резерве: фото {reservedPhotoSetCredits}, комплекты {reservedKitCredits}
+                </div>
               )}
-            </span>
+            </div>
           </div>
         </div>
       </div>
@@ -201,14 +206,14 @@ export default function TariffsPage({
                   </span>
                 </div>
               )}
-              
+
               <div className="space-y-1">
                 <h3 className="text-md font-display font-medium text-[#F8F8F8] leading-tight min-h-[40px]">{pk.name}</h3>
                 <span className="inline-block bg-[rgba(201,163,95,0.12)] text-[#C9A35F] text-xs px-2.5 py-0.5 rounded-full font-semibold">
                   {pk.creditsLabel}
                 </span>
                 <span className="block text-[11px] text-[#8B8B93] font-medium mt-1.5 font-mono">
-                  После оплаты: +{formatCredits(pk.creditsCount)} {getCreditNoun(pk.creditsCount)}
+                  После оплаты: +{pk.creditsCount} {pk.type === 'photo' ? 'фото-кредит' : 'комплект-кредитов'}
                 </span>
               </div>
 
@@ -268,7 +273,7 @@ export default function TariffsPage({
                   <span className="text-[#8B8B93] uppercase text-[9px] font-bold block mb-0.5">Сумма к отправке</span>
                   <span className="text-lg font-bold text-[#F8F8F8] font-mono">{checkoutIntent.amount}</span>
                 </div>
-                
+
                 <div>
                   <span className="text-[#8B8B93] uppercase text-[9px] font-bold block mb-0.5">Валюта сети / Сеть</span>
                   <span className="font-semibold text-[#F8F8F8] font-mono">Tether Gold (USDT) on TON blockchain</span>
@@ -315,7 +320,7 @@ export default function TariffsPage({
                   </span>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[#B5B5BC]">
                   Хэш транзакции (Transaction Hash, TX)
@@ -343,7 +348,7 @@ export default function TariffsPage({
               <span className="text-xs font-bold font-mono text-[#8B8B93] uppercase tracking-widest">
                 QR-код для перевода
               </span>
-              
+
               {/* Fake QR square */}
               <div className="w-36 h-36 border border-[rgba(255,255,255,0.12)] bg-[#0F0F11] rounded-[6px] flex flex-col justify-center items-center relative overflow-hidden">
                 <QrCode size={40} className="text-[#C9A35F]" />
@@ -467,7 +472,7 @@ export default function TariffsPage({
             <h2 className="text-md font-display font-medium text-[#F8F8F8]">
               История операций
             </h2>
-            
+
             <div className="overflow-x-auto text-[13px]">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -488,7 +493,7 @@ export default function TariffsPage({
                         <td className="py-2.5 px-3 font-semibold text-[#F8F8F8]">{getLedgerEventLabel(item.event)}</td>
                         <td className={`py-2.5 px-3 font-bold font-mono ${isPositive ? 'text-[#78A98A]' : 'text-[#C97878]'}`}>
                           {isPositive ? '+' : '-'}
-                          {formatCredits(item.count)} кр.
+                          {item.count} {item.creditType === 'photo' ? 'фото' : 'компл.'}
                         </td>
                         <td className="py-2.5 px-3 text-[#B5B5BC]">{item.status}</td>
                         <td className="py-2.5 px-3 text-[#B5B5BC] truncate max-w-[240px]" title={item.note}>{item.note}</td>
@@ -569,61 +574,61 @@ export default function TariffsPage({
 
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => onAdminAction?.('add', 0.5)}
+                onClick={() => onAdminAction?.('add', 1, undefined, 'photo')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Добавить 0,5 кредита
+                Добавить 1 фото-кредит
               </button>
               <button
-                onClick={() => onAdminAction?.('add', 1.0)}
+                onClick={() => onAdminAction?.('add', 1, undefined, 'kit')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Добавить 1 кредит
+                Добавить 1 комплект-кредит
               </button>
               <button
-                onClick={() => onAdminAction?.('add', 3.0)}
+                onClick={() => onAdminAction?.('add', 3, undefined, 'kit')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Добавить 3 кредита
+                Добавить 3 комплект-кредита
               </button>
               <button
-                onClick={() => onAdminAction?.('add', 30.0)}
+                onClick={() => onAdminAction?.('add', 30, undefined, 'kit')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Добавить 30 кредитов
+                Добавить 30 комплект-кредитов
               </button>
               <button
-                disabled={creditBalance < 0.5}
-                onClick={() => onAdminAction?.('spend', 0.5)}
+                disabled={photoSetCredits < 1}
+                onClick={() => onAdminAction?.('spend', 1, undefined, 'photo')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C97878] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors disabled:opacity-40 cursor-pointer"
               >
-                Списать 0,5 кредита
+                Списать 1 фото-кредит
               </button>
               <button
-                disabled={creditBalance < 1}
-                onClick={() => onAdminAction?.('spend', 1.0)}
+                disabled={kitCredits < 1}
+                onClick={() => onAdminAction?.('spend', 1, undefined, 'kit')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C97878] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors disabled:opacity-40 cursor-pointer"
               >
-                Списать 1 кредит
+                Списать 1 комплект-кредит
               </button>
               <button
-                disabled={reservedCredits === 0}
-                onClick={() => onAdminAction?.('return_reserve')}
+                disabled={reservedPhotoSetCredits === 0 && reservedKitCredits === 0}
+                onClick={() => onAdminAction?.('return_reserve', 1, undefined, reservedKitCredits > 0 ? 'kit' : 'photo')}
                 className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] hover:border-[#C9A35F] text-[#F8F8F8] rounded-[6px] px-3 py-1.5 font-medium transition-colors disabled:opacity-40 cursor-pointer"
               >
                 Вернуть резерв
               </button>
               <button
-                onClick={() => onAdminAction?.('add', 5, 'marketing_grant')}
+                onClick={() => onAdminAction?.('add', 1, 'marketing_grant', 'photo')}
                 className="bg-[#16161A] border border-dashed border-[#C9A35F] text-[#C9A35F] rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Начислить старт-маркетинг (+5 кр.)
+                Начислить старт-маркетинг (+1 фото-кредит)
               </button>
               <button
-                onClick={() => onAdminAction?.('add', 3, 'support_compensation')}
+                onClick={() => onAdminAction?.('add', 1, 'support_compensation', 'kit')}
                 className="bg-[#16161A] border border-dashed border-blue-400 text-blue-300 rounded-[6px] px-3 py-1.5 font-medium transition-colors cursor-pointer"
               >
-                Выдать компенсацию поддержки (+3 кр.)
+                Выдать компенсацию поддержки (+1 комплект-кредит)
               </button>
               <button
                 onClick={() => {
@@ -634,7 +639,10 @@ export default function TariffsPage({
                 Отметить ручное исправление (логирует)
               </button>
               <button
-                onClick={() => onAdminAction?.('spend', creditBalance)}
+                onClick={() => {
+                  if (kitCredits > 0) onAdminAction?.('spend', kitCredits, undefined, 'kit');
+                  if (photoSetCredits > 0) onAdminAction?.('spend', photoSetCredits, undefined, 'photo');
+                }}
                 className="bg-[rgba(201,120,120,0.12)] text-[#C97878] border border-[rgba(201,120,120,0.3)] rounded-[6px] px-3 py-1.5 font-medium hover:bg-[rgba(201,120,120,0.2)] transition-colors cursor-pointer"
               >
                 Сбросить баланс в 0
@@ -657,11 +665,11 @@ export default function TariffsPage({
             </div>
 
             <div className="bg-[#16161A] p-3 rounded-[6px] border border-[rgba(255,255,255,0.08)] text-center text-xs font-bold text-[#C9A35F]">
-              {selectedPack.id === 'pack_7_photos' 
-                ? 'Пакет активирован. На баланс добавлено 0,5 кредита.' 
+              {selectedPack.id === 'pack_7_photos'
+                ? 'Пакет активирован. На баланс добавлен 1 фото-кредит.'
                 : selectedPack.id === 'pack_3_kits'
-                ? 'Пакет активирован. На баланс добавлено 3 кредита.'
-                : 'Пакет активирован. На баланс добавлено 30 кредитов.'
+                ? 'Пакет активирован. На баланс добавлено 3 комплект-кредита.'
+                : 'Пакет активирован. На баланс добавлено 30 комплект-кредитов.'
               }
             </div>
 
