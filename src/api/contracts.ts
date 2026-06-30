@@ -58,9 +58,103 @@ export interface StartProductionFlowRequest {
   };
 }
 
+export type WebLaunchTemplate = 'D1' | 'streetwear' | 'B1' | 'C1';
+export type WebLaunchMode = 'mock' | 'production';
+export type WebCreditReserveType = 'photo' | 'kit';
+export type SeedanceResolution = '480p' | '720p' | '1080p';
+
+export interface WebSceneSelection {
+  frontendId?: string;
+  backendLocationId?: string;
+  backendSlot?: string;
+}
+
+export interface WebPosePackSelection {
+  frontendId?: string;
+  backendPosePackId?: string;
+}
+
+export interface WebVideoTemplateSelection {
+  frontendId?: string;
+  backendVideoTemplateId?: string;
+}
+
+export interface WebLaunchRequestBase {
+  requestId: string;
+  templateId: WebLaunchTemplate;
+  mode: WebLaunchMode;
+  reserveType: WebCreditReserveType;
+  lookName?: string;
+  scene?: WebSceneSelection;
+  posePack?: WebPosePackSelection;
+  videoTemplate?: WebVideoTemplateSelection;
+  seedanceResolution?: SeedanceResolution;
+}
+
+export interface WebLaunchLookRef {
+  lookId: string;
+  modelId: string;
+  kitId: string;
+  characterIdentityCardId: string;
+}
+
+export interface WebSingleLookLaunchRequest extends WebLaunchRequestBase {
+  templateId: 'D1' | 'streetwear';
+  reserveType: 'photo';
+  look: WebLaunchLookRef;
+}
+
+export interface WebB1LaunchRequest extends WebLaunchRequestBase {
+  templateId: 'B1';
+  reserveType: 'kit';
+  characterIdentityCardId: string;
+  looks: [WebLaunchLookRef, WebLaunchLookRef, WebLaunchLookRef, WebLaunchLookRef, WebLaunchLookRef];
+}
+
+export interface WebC1LaunchLookRef extends WebLaunchLookRef {
+  characterIdentityCardId: string;
+}
+
+export interface WebC1LaunchRequest extends WebLaunchRequestBase {
+  templateId: 'C1';
+  reserveType: 'kit';
+  looks: [WebC1LaunchLookRef, WebC1LaunchLookRef, WebC1LaunchLookRef];
+}
+
+export type WebLaunchRequest = WebSingleLookLaunchRequest | WebB1LaunchRequest | WebC1LaunchRequest;
+
+export type WebLaunchBlockedError =
+  | 'unsupported_template'
+  | 'unsupported_mapping'
+  | 'invalid_launch_payload'
+  | 'insufficient_credits'
+  | 'not_found'
+  | 'paid_generation_disabled'
+  | 'launch_unavailable';
+
+export interface WebLaunchBlockedResponse {
+  ok: false;
+  error: WebLaunchBlockedError;
+  message: string;
+  details?: Record<string, unknown>;
+  workspace?: ModaWorkspace;
+}
+
+export interface WebLaunchAcceptedResponse {
+  ok: true;
+  requestId: string;
+  jobId: string;
+  resultId: string;
+  status: 'queued' | 'processing';
+  workspace: ModaWorkspace;
+}
+
+export type WebLaunchResponse = WebLaunchAcceptedResponse | WebLaunchBlockedResponse;
+
 export interface LaunchProductionRequest {
   reserveType: 'photo' | 'kit';
   flow: ActiveProductionFlow;
+  canonicalLaunch?: WebLaunchRequest;
 }
 
 export interface AdvanceResultStatusRequest {

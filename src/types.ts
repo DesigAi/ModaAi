@@ -10,6 +10,7 @@ export interface Model {
   skinTone: string;
   notes: string;
   previewUrl: string; // Grayscale layout description or background placeholder
+  characterIdentityCardId?: string | null;
   timestamp: number;
 }
 
@@ -25,6 +26,7 @@ export interface WardrobeItem {
   category: WardrobeItemCategory;
   classification: WardrobeItemClassification;
   imageSrc: string; // grayscale wireframe representation
+  artifactId?: string | null;
   sideType: 'front' | 'back' | 'side' | 'detail' | 'accessory' | 'closeup' | 'generic';
   usageStatus: 'active' | 'hidden';
   createdAt: string;
