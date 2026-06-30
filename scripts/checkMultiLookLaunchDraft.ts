@@ -43,6 +43,24 @@ assert(b1.canonicalLaunch.templateId === 'B1', 'B1 template expected');
 assert(b1.canonicalLaunch.looks.length === 5, 'B1 must keep exactly five looks');
 assert(b1.canonicalLaunch.characterIdentityCardId === 'card-shared', 'B1 shared card expected');
 
+const b1TooShort = expectBlocked(
+  buildCanonicalMultiLookLaunchDraft({
+    requestId: 'req-b1-short',
+    templateId: 'B1',
+    characterIdentityCardId: 'card-shared',
+    looks: [
+      look(1, 'card-shared'),
+      look(2, 'card-shared'),
+      look(3, 'card-shared'),
+      look(4, 'card-shared'),
+    ],
+  } as any),
+  'B1 draft with four looks should be blocked',
+);
+assert(b1TooShort.error === 'invalid_launch_payload', 'B1 short draft must be invalid payload');
+assert(b1TooShort.details?.expected === 5, 'B1 short draft should report expected length');
+assert(b1TooShort.details?.actual === 4, 'B1 short draft should report actual length');
+
 const b1Mismatch = expectBlocked(
   buildCanonicalMultiLookLaunchDraft({
     requestId: 'req-b1-bad',
@@ -68,6 +86,18 @@ const c1 = buildCanonicalMultiLookLaunchDraft({
 assert(c1.ok, 'C1 canonical draft should build');
 assert(c1.canonicalLaunch.templateId === 'C1', 'C1 template expected');
 assert(c1.canonicalLaunch.looks.length === 3, 'C1 must keep exactly three looks');
+
+const c1TooShort = expectBlocked(
+  buildCanonicalMultiLookLaunchDraft({
+    requestId: 'req-c1-short',
+    templateId: 'C1',
+    looks: [look(1, 'card-a'), look(2, 'card-b')],
+  } as any),
+  'C1 draft with two looks should be blocked',
+);
+assert(c1TooShort.error === 'invalid_launch_payload', 'C1 short draft must be invalid payload');
+assert(c1TooShort.details?.expected === 3, 'C1 short draft should report expected length');
+assert(c1TooShort.details?.actual === 2, 'C1 short draft should report actual length');
 
 const c1Duplicate = expectBlocked(
   buildCanonicalMultiLookLaunchDraft({
