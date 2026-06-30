@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { InterfaceLanguage, Model, WardrobeItem, WardrobeKit, Look, LedgerItem, ResultItem, ActiveProductionFlow, ResultState } from './types';
 import { modaApi, ModaWorkspace } from './api';
-import { buildCanonicalLaunchFromFlow } from './api/buildCanonicalLaunch';
+import { WebLaunchBlockedResponse } from './api/contracts';
+import { buildCanonicalLaunchFromFlow, CanonicalLaunchBuildBlocked } from './api/buildCanonicalLaunch';
 import { INITIAL_MODELS, INITIAL_WARDROBE_ITEMS, INITIAL_WARDROBE_KITS, INITIAL_LOOKS, INITIAL_LEDGER } from './mockData';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
@@ -11,6 +12,14 @@ import ResultsPage from './components/ResultsPage';
 import TariffsPage from './components/TariffsPage';
 import SettingsPage from './components/SettingsPage';
 import { Coins, Sparkles, LayoutGrid, Users, Settings, LogOut, Camera, AlertOctagon, HelpCircle } from 'lucide-react';
+
+type LaunchBlockedState = CanonicalLaunchBuildBlocked | WebLaunchBlockedResponse;
+
+function isLaunchBlockedResponse(value: unknown): value is WebLaunchBlockedResponse {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as { ok?: unknown; error?: unknown; message?: unknown };
+  return candidate.ok === false && typeof candidate.error === 'string' && typeof candidate.message === 'string';
+}
 
 
 function applyWorkspaceSnapshot(workspace: ModaWorkspace, setters: {
@@ -74,6 +83,7 @@ export default function App() {
   // Modal alert rules
   const [showAccessModal, setShowAccessModal] = useState<boolean>(false);
   const [showInsufficientModal, setShowInsufficientModal] = useState<boolean>(false);
+  const [launchBlocked, setLaunchBlocked] = useState<LaunchBlockedState | null>(null);
   const [workspaceReady, setWorkspaceReady] = useState<boolean>(false);
 
   const applyWorkspace = (workspace: ModaWorkspace) => {
@@ -257,22 +267,34 @@ export default function App() {
     if (!activeProductionFlow || !activeProductionFlow.selectedModel || !activeProductionFlow.selectedKit) return;
 
     if (getAvailableCredits(reserveType) < 1) {
-      alert('Недостаточно доступных кредитов для запуска.');
+      setShowInsufficientModal(true);
       return;
     }
     const launchPayload = buildCanonicalLaunchFromFlow(activeProductionFlow, reserveType);
     if (launchPayload.ok === false) {
-      alert(launchPayload.message);
+      setLaunchBlocked(launchPayload);
       return;
     }
 
-    const workspace = await modaApi.launchProduction({
-      reserveType,
-      flow: activeProductionFlow,
-      canonicalLaunch: launchPayload.canonicalLaunch,
-    });
-    applyWorkspace(workspace);
-    setCurrentTab('results');
+    try {
+      const workspace = await modaApi.launchProduction({
+        reserveType,
+        flow: activeProductionFlow,
+        canonicalLaunch: launchPayload.canonicalLaunch,
+      });
+      applyWorkspace(workspace);
+      setCurrentTab('results');
+    } catch (error) {
+      const response = (error as { response?: unknown }).response;
+      if (isLaunchBlockedResponse(response)) {
+        setLaunchBlocked(response);
+        if (response.workspace) {
+          applyWorkspace(response.workspace);
+        }
+        return;
+      }
+      throw error;
+    }
   };
 
   // Demo backend-compatible production lifecycle simulator.
@@ -610,6 +632,42 @@ export default function App() {
                 className="w-full border border-[rgba(255,255,255,0.12)] hover:bg-[#1D1D21] text-[#F8F8F8] font-semibold text-xs py-2.5 rounded-[6px] transition-colors text-center cursor-pointer"
               >
                 Изучить имеющиеся
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Canonical launch blocked state */}
+      {launchBlocked && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-sans">
+          <div className="bg-[#16161A] border border-[rgba(255,255,255,0.12)] rounded-[12px] p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="text-center space-y-2">
+              <AlertOctagon className="text-[#C9A35F] mx-auto" size={40} />
+              <h3 className="text-lg font-display font-medium text-[#F8F8F8]">Запуск пока недоступен</h3>
+              <p className="text-xs text-[#B5B5BC] leading-relaxed font-sans">
+                {launchBlocked.message}
+              </p>
+            </div>
+
+            <div className="bg-[#0F0F11] border border-[rgba(255,255,255,0.08)] rounded-[8px] p-3 space-y-2 text-xs font-mono">
+              <div className="flex justify-between gap-3">
+                <span className="text-[#8B8B93]">canonical error</span>
+                <span className="text-[#C9A35F] text-right">{launchBlocked.error}</span>
+              </div>
+              {launchBlocked.details && (
+                <pre className="max-h-36 overflow-auto whitespace-pre-wrap break-words text-[#8B8B93] text-[10px] leading-relaxed">
+                  {JSON.stringify(launchBlocked.details, null, 2)}
+                </pre>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={() => setLaunchBlocked(null)}
+                className="w-full h-[40px] bg-[#C9A35F] hover:bg-[#D4B474] active:bg-[#A88444] text-[#050505] font-sans font-semibold text-sm rounded-[6px] flex items-center justify-center transition-all select-none active:translate-y-[1px] cursor-pointer"
+              >
+                Вернуться к настройке запуска
               </button>
             </div>
           </div>
