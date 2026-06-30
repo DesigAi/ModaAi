@@ -100,6 +100,9 @@ export default function App() {
   const [showInsufficientModal, setShowInsufficientModal] = useState<boolean>(false);
   const [launchBlocked, setLaunchBlocked] = useState<LaunchBlockedState | null>(null);
   const [acceptedLaunch, setAcceptedLaunch] = useState<WebLaunchAcceptedResponse | null>(null);
+  const [launchRefreshInFlight, setLaunchRefreshInFlight] = useState<boolean>(false);
+  const [launchLastRefreshedAt, setLaunchLastRefreshedAt] = useState<number | null>(null);
+  const [launchRefreshError, setLaunchRefreshError] = useState<string | null>(null);
   const [workspaceReady, setWorkspaceReady] = useState<boolean>(false);
 
   const applyWorkspace = (workspace: ModaWorkspace) => {
@@ -301,6 +304,8 @@ export default function App() {
       if (isLaunchAcceptedResponse(launchResponse)) {
         applyWorkspace(launchResponse.workspace);
         setAcceptedLaunch(launchResponse);
+        setLaunchLastRefreshedAt(Date.now());
+        setLaunchRefreshError(null);
       } else {
         applyWorkspace(launchResponse);
         setAcceptedLaunch(null);
@@ -319,6 +324,34 @@ export default function App() {
       throw error;
     }
   };
+
+  const refreshAcceptedLaunch = async () => {
+    if (!acceptedLaunch) return;
+    setLaunchRefreshInFlight(true);
+    setLaunchRefreshError(null);
+    try {
+      const { workspace } = await modaApi.refreshLaunchContext(acceptedLaunch.resultId);
+      applyWorkspace(workspace);
+      setLaunchLastRefreshedAt(Date.now());
+    } catch (error) {
+      setLaunchRefreshError(error instanceof Error ? error.message : 'unknown_refresh_error');
+    } finally {
+      setLaunchRefreshInFlight(false);
+    }
+  };
+
+  useEffect(() => {
+    if (apiMode !== 'http' || !acceptedLaunch) return;
+    const observed = results.find((result) => result.id === acceptedLaunch.resultId);
+    const terminalStatuses: ResultState[] = ['ready', 'failed', 'support_required'];
+    if (observed && terminalStatuses.includes(observed.status)) return;
+
+    const timer = window.setTimeout(() => {
+      refreshAcceptedLaunch();
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [acceptedLaunch, results]);
 
   // Demo backend-compatible production lifecycle simulator.
   useEffect(() => {
@@ -544,7 +577,15 @@ export default function App() {
         {/* Content switchboards nested rendering */}
         <div className="flex-1 overflow-y-auto bg-[#050505]">
           {currentTab === 'results' && acceptedLaunch && (
-            <AcceptedLaunchCard launch={acceptedLaunch} onDismiss={() => setAcceptedLaunch(null)} />
+            <AcceptedLaunchCard
+              launch={acceptedLaunch}
+              observedResult={results.find((result) => result.id === acceptedLaunch.resultId)}
+              isRefreshing={launchRefreshInFlight}
+              lastRefreshedAt={launchLastRefreshedAt}
+              refreshError={launchRefreshError}
+              onRefresh={refreshAcceptedLaunch}
+              onDismiss={() => setAcceptedLaunch(null)}
+            />
           )}
           {renderTabContent()}
         </div>

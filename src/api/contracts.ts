@@ -179,6 +179,10 @@ export interface AdminCreditAdjustmentRequest {
   customEvent?: LedgerEvent | string;
 }
 
+export interface LaunchContextRefreshResponse {
+  workspace: ModaWorkspace;
+}
+
 export interface ModaApi {
   getWorkspace(): Promise<ModaWorkspace>;
   saveWorkspace(workspace: ModaWorkspace): Promise<ModaWorkspace>;
@@ -198,6 +202,7 @@ export interface ModaApi {
   toggleWardrobeItemVisibility(itemId: string): Promise<ModaWorkspace>;
   toggleWardrobeKitVisibility(kitId: string): Promise<ModaWorkspace>;
   launchProduction(request: LaunchProductionRequest): Promise<LaunchProductionResponse>;
+  refreshLaunchContext(resultId: string): Promise<LaunchContextRefreshResponse>;
   advanceResultStatus(request: AdvanceResultStatusRequest): Promise<ModaWorkspace>;
   refundResult(result: ResultItem): Promise<ModaWorkspace>;
   manualFixResult(result: ResultItem): Promise<ModaWorkspace>;

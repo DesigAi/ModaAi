@@ -1,4 +1,5 @@
 import {
+  LaunchContextRefreshResponse,
   LaunchProductionRequest,
   ModaApi,
   ModaWorkspace,
@@ -71,6 +72,9 @@ export function createHttpApi(): ModaApi {
         throw Object.assign(new Error(response.message), { response });
       }
       return response;
+    },
+    async refreshLaunchContext(_resultId: string): Promise<LaunchContextRefreshResponse> {
+      return { workspace: await request<ModaWorkspace>('/api/v1/web/workspace') };
     },
     advanceResultStatus: fail,
     refundResult: fail,
