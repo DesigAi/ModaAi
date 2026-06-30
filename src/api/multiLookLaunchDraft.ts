@@ -71,6 +71,32 @@ function missingLookFields(looks: WebLaunchLookRef[]): string[] {
 export function buildCanonicalMultiLookLaunchDraft(
   draft: MultiLookLaunchDraft,
 ): MultiLookLaunchDraftBuildResult {
+  if (!Array.isArray(draft.looks)) {
+    return {
+      ok: false,
+      error: 'invalid_launch_payload',
+      message: 'Multi-look launch draft requires a looks array.',
+    };
+  }
+
+  if (draft.templateId === 'B1' && draft.looks.length !== 5) {
+    return {
+      ok: false,
+      error: 'invalid_launch_payload',
+      message: 'B1 launch draft requires exactly five looks.',
+      details: { expected: 5, actual: draft.looks.length },
+    };
+  }
+
+  if (draft.templateId === 'C1' && draft.looks.length !== 3) {
+    return {
+      ok: false,
+      error: 'invalid_launch_payload',
+      message: 'C1 launch draft requires exactly three looks.',
+      details: { expected: 3, actual: draft.looks.length },
+    };
+  }
+
   const missing = missingLookFields(draft.looks);
   if (missing.length > 0) {
     return {
