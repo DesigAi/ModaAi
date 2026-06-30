@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { InterfaceLanguage, Model, WardrobeItem, WardrobeKit, Look, LedgerItem, ResultItem, ActiveProductionFlow, ResultState } from './types';
-import { modaApi, ModaWorkspace } from './api';
+import { apiMode, modaApi, ModaWorkspace } from './api';
 import { WebLaunchAcceptedResponse, WebLaunchBlockedResponse } from './api/contracts';
 import { buildCanonicalLaunchFromFlow, CanonicalLaunchBuildBlocked } from './api/buildCanonicalLaunch';
 import { INITIAL_MODELS, INITIAL_WARDROBE_ITEMS, INITIAL_WARDROBE_KITS, INITIAL_LOOKS, INITIAL_LEDGER } from './mockData';
@@ -322,6 +322,7 @@ export default function App() {
 
   // Demo backend-compatible production lifecycle simulator.
   useEffect(() => {
+    if (apiMode !== 'demo') return;
     if (!workspaceReady) return;
     const nextRunning = results.find((result) =>
       ['queued', 'processing', 'quality_check', 'archive_preparing'].includes(result.status)
