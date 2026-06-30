@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { InterfaceLanguage, Model, WardrobeItem, WardrobeKit, Look, LedgerItem, ResultItem, ActiveProductionFlow, ResultState } from './types';
 import { modaApi, ModaWorkspace } from './api';
+import { buildCanonicalLaunchFromFlow } from './api/buildCanonicalLaunch';
 import { INITIAL_MODELS, INITIAL_WARDROBE_ITEMS, INITIAL_WARDROBE_KITS, INITIAL_LOOKS, INITIAL_LEDGER } from './mockData';
 import AuthScreen from './components/AuthScreen';
 import Sidebar from './components/Sidebar';
@@ -259,7 +260,17 @@ export default function App() {
       alert('Недостаточно доступных кредитов для запуска.');
       return;
     }
-    const workspace = await modaApi.launchProduction({ reserveType, flow: activeProductionFlow });
+    const launchPayload = buildCanonicalLaunchFromFlow(activeProductionFlow, reserveType);
+    if (launchPayload.ok === false) {
+      alert(launchPayload.message);
+      return;
+    }
+
+    const workspace = await modaApi.launchProduction({
+      reserveType,
+      flow: activeProductionFlow,
+      canonicalLaunch: launchPayload.canonicalLaunch,
+    });
     applyWorkspace(workspace);
     setCurrentTab('results');
   };
