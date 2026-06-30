@@ -151,6 +151,8 @@ export interface WebLaunchAcceptedResponse {
 
 export type WebLaunchResponse = WebLaunchAcceptedResponse | WebLaunchBlockedResponse;
 
+export type LaunchProductionResponse = WebLaunchAcceptedResponse | ModaWorkspace;
+
 export interface LaunchProductionRequest {
   reserveType: 'photo' | 'kit';
   flow: ActiveProductionFlow;
@@ -195,7 +197,7 @@ export interface ModaApi {
   deleteWardrobeKit(kitId: string): Promise<ModaWorkspace>;
   toggleWardrobeItemVisibility(itemId: string): Promise<ModaWorkspace>;
   toggleWardrobeKitVisibility(kitId: string): Promise<ModaWorkspace>;
-  launchProduction(request: LaunchProductionRequest): Promise<ModaWorkspace>;
+  launchProduction(request: LaunchProductionRequest): Promise<LaunchProductionResponse>;
   advanceResultStatus(request: AdvanceResultStatusRequest): Promise<ModaWorkspace>;
   refundResult(result: ResultItem): Promise<ModaWorkspace>;
   manualFixResult(result: ResultItem): Promise<ModaWorkspace>;
