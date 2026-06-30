@@ -57,8 +57,9 @@ export function createHttpApi(): ModaApi {
       if (!requestBody.canonicalLaunch) {
         throw Object.assign(new Error('canonicalLaunch is required for HTTP launch'), {
           response: {
-            error: 'canonical_launch_required',
-            safeToLaunch: false,
+            ok: false,
+            error: 'invalid_launch_payload',
+            message: 'canonicalLaunch is required for HTTP launch.',
           } satisfies WebLaunchBlockedResponse,
         });
       }
@@ -66,10 +67,10 @@ export function createHttpApi(): ModaApi {
         method: 'POST',
         body: JSON.stringify(requestBody.canonicalLaunch),
       });
-      if (response.safeToLaunch === false) {
-        throw Object.assign(new Error(response.error), { response });
+      if (response.ok === false) {
+        throw Object.assign(new Error(response.message), { response });
       }
-      return this.getWorkspace();
+      return response.workspace;
     },
     advanceResultStatus: fail,
     refundResult: fail,

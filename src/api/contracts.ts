@@ -123,24 +123,30 @@ export interface WebC1LaunchRequest extends WebLaunchRequestBase {
 
 export type WebLaunchRequest = WebSingleLookLaunchRequest | WebB1LaunchRequest | WebC1LaunchRequest;
 
+export type WebLaunchBlockedError =
+  | 'unsupported_template'
+  | 'unsupported_mapping'
+  | 'invalid_launch_payload'
+  | 'insufficient_credits'
+  | 'not_found'
+  | 'paid_generation_disabled'
+  | 'launch_unavailable';
+
 export interface WebLaunchBlockedResponse {
-  error: 'unsupported_mapping' | 'contract_validation_error' | 'paid_generation_not_allowed' | 'web_launch_pipeline_execution_not_enabled' | string;
-  requestId?: string;
-  templateId?: WebLaunchTemplate;
-  safeToLaunch: false;
-  unsupported?: Array<{
-    field: 'scene' | 'posePack' | 'videoTemplate';
-    frontendId: string;
-    reason: string;
-  }>;
+  ok: false;
+  error: WebLaunchBlockedError;
+  message: string;
+  details?: Record<string, unknown>;
+  workspace?: ModaWorkspace;
 }
 
 export interface WebLaunchAcceptedResponse {
+  ok: true;
   requestId: string;
-  templateId: WebLaunchTemplate;
-  status: 'queued';
   jobId: string;
-  safeToLaunch: true;
+  resultId: string;
+  status: 'queued' | 'processing';
+  workspace: ModaWorkspace;
 }
 
 export type WebLaunchResponse = WebLaunchAcceptedResponse | WebLaunchBlockedResponse;
