@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { InterfaceLanguage, Model, WardrobeItem, WardrobeKit, Look, LedgerItem, ResultItem, ActiveProductionFlow, ResultState } from './types';
 import { modaApi, ModaWorkspace } from './api';
-import { WebLaunchBlockedResponse } from './api/contracts';
+import { WebLaunchAcceptedResponse, WebLaunchBlockedResponse } from './api/contracts';
 import { buildCanonicalLaunchFromFlow, CanonicalLaunchBuildBlocked } from './api/buildCanonicalLaunch';
 import { INITIAL_MODELS, INITIAL_WARDROBE_ITEMS, INITIAL_WARDROBE_KITS, INITIAL_LOOKS, INITIAL_LEDGER } from './mockData';
 import AuthScreen from './components/AuthScreen';
@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import CreatePage from './components/CreatePage';
 import LooksPage from './components/LooksPage';
 import ResultsPage from './components/ResultsPage';
+import AcceptedLaunchCard from './components/AcceptedLaunchCard';
 import TariffsPage from './components/TariffsPage';
 import SettingsPage from './components/SettingsPage';
 import { Coins, Sparkles, LayoutGrid, Users, Settings, LogOut, Camera, AlertOctagon, HelpCircle } from 'lucide-react';
@@ -19,6 +20,20 @@ function isLaunchBlockedResponse(value: unknown): value is WebLaunchBlockedRespo
   if (!value || typeof value !== 'object') return false;
   const candidate = value as { ok?: unknown; error?: unknown; message?: unknown };
   return candidate.ok === false && typeof candidate.error === 'string' && typeof candidate.message === 'string';
+}
+
+function isLaunchAcceptedResponse(value: unknown): value is WebLaunchAcceptedResponse {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as { ok?: unknown; requestId?: unknown; jobId?: unknown; resultId?: unknown; status?: unknown; workspace?: unknown };
+  return (
+    candidate.ok === true &&
+    typeof candidate.requestId === 'string' &&
+    typeof candidate.jobId === 'string' &&
+    typeof candidate.resultId === 'string' &&
+    (candidate.status === 'queued' || candidate.status === 'processing') &&
+    typeof candidate.workspace === 'object' &&
+    candidate.workspace !== null
+  );
 }
 
 
@@ -84,6 +99,7 @@ export default function App() {
   const [showAccessModal, setShowAccessModal] = useState<boolean>(false);
   const [showInsufficientModal, setShowInsufficientModal] = useState<boolean>(false);
   const [launchBlocked, setLaunchBlocked] = useState<LaunchBlockedState | null>(null);
+  const [acceptedLaunch, setAcceptedLaunch] = useState<WebLaunchAcceptedResponse | null>(null);
   const [workspaceReady, setWorkspaceReady] = useState<boolean>(false);
 
   const applyWorkspace = (workspace: ModaWorkspace) => {
@@ -277,12 +293,19 @@ export default function App() {
     }
 
     try {
-      const workspace = await modaApi.launchProduction({
+      const launchResponse = await modaApi.launchProduction({
         reserveType,
         flow: activeProductionFlow,
         canonicalLaunch: launchPayload.canonicalLaunch,
       });
-      applyWorkspace(workspace);
+      if (isLaunchAcceptedResponse(launchResponse)) {
+        applyWorkspace(launchResponse.workspace);
+        setAcceptedLaunch(launchResponse);
+      } else {
+        applyWorkspace(launchResponse);
+        setAcceptedLaunch(null);
+      }
+      setLaunchBlocked(null);
       setCurrentTab('results');
     } catch (error) {
       const response = (error as { response?: unknown }).response;
@@ -519,6 +542,9 @@ export default function App() {
 
         {/* Content switchboards nested rendering */}
         <div className="flex-1 overflow-y-auto bg-[#050505]">
+          {currentTab === 'results' && acceptedLaunch && (
+            <AcceptedLaunchCard launch={acceptedLaunch} onDismiss={() => setAcceptedLaunch(null)} />
+          )}
           {renderTabContent()}
         </div>
 

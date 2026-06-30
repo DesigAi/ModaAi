@@ -70,7 +70,7 @@ export function createHttpApi(): ModaApi {
       if (response.ok === false) {
         throw Object.assign(new Error(response.message), { response });
       }
-      return response.workspace;
+      return response;
     },
     advanceResultStatus: fail,
     refundResult: fail,
