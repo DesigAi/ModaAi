@@ -162,6 +162,16 @@ Create a test handoff that a teammate can follow without asking “which mode am
   - B1/C1 not wired;
   - paid/live modes blocked.
 
+### Implementation note
+
+Runbook destination:
+
+```text
+docs/TEAMMATE_TEST_RUNBOOK.md
+```
+
+Frontend must show the visible `API mode: demo | http` banner while testing.
+
 ### Success criteria
 
 - Teammate can run the app without asking which API mode is active.
