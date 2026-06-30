@@ -10,6 +10,7 @@ import CreatePage from './components/CreatePage';
 import LooksPage from './components/LooksPage';
 import ResultsPage from './components/ResultsPage';
 import AcceptedLaunchCard from './components/AcceptedLaunchCard';
+import ApiModeBanner from './components/ApiModeBanner';
 import TariffsPage from './components/TariffsPage';
 import SettingsPage from './components/SettingsPage';
 import { Coins, Sparkles, LayoutGrid, Users, Settings, LogOut, Camera, AlertOctagon, HelpCircle } from 'lucide-react';
@@ -576,6 +577,7 @@ export default function App() {
 
         {/* Content switchboards nested rendering */}
         <div className="flex-1 overflow-y-auto bg-[#050505]">
+          <ApiModeBanner mode={apiMode} />
           {currentTab === 'results' && acceptedLaunch && (
             <AcceptedLaunchCard
               launch={acceptedLaunch}

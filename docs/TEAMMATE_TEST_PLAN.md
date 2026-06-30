@@ -60,13 +60,13 @@ For backend-integrated teammate tests, `demo` mode must be visually obvious or b
 
 ## Suggested docs/runbook destination
 
-After implementation, create or update:
+Implemented runbook:
 
 ```text
 docs/TEAMMATE_TEST_RUNBOOK.md
 ```
 
-It should include:
+It includes:
 
 - backend command;
 - frontend command;
