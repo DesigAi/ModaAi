@@ -446,6 +446,10 @@ export function createDemoApi(): ModaApi {
       });
     },
 
+    async refreshLaunchContext(_resultId: string) {
+      return { workspace: readWorkspace() };
+    },
+
     async advanceResultStatus({ id, status, extraData }: AdvanceResultStatusRequest) {
       return mutate((workspace) => withStatusTransition(workspace, id, status, extraData));
     },
