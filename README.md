@@ -1,10 +1,38 @@
-# ModaAI Web Demo
+# ModaAI Web Demo — deploy mirror
+
+> **Canonical source moved to the monorepo.**
+>
+> This repository remains the public GitHub Pages deployment mirror for the ModaAI web app until the project has a supported Pages/deploy target from the monorepo.
+
+## Canonical source
+
+```text
+/home/roman/projects/ai-fashion-content-generation-telegram-bot/apps/web
+https://github.com/skillet07/ai-fashion-content-generation-telegram-bot/tree/main/apps/web
+```
+
+## Public demo URL
+
+```text
+https://desigai.github.io/ModaAi/
+```
+
+## Repository policy
+
+- Product/frontend source changes should happen in the monorepo under `apps/web/`.
+- This repository should receive only deliberate mirror/deploy updates from the monorepo or explicit repository-retirement changes.
+- Do not add new product features directly here unless Roman explicitly reopens this repo as an active source repo.
+- Do not put backend secrets, bot tokens, provider keys, billing credentials, marketplace credentials, or wallet secrets in this repository.
+
+See [`docs/MONOREPO_MIRROR_POLICY.md`](docs/MONOREPO_MIRROR_POLICY.md) for the operational policy.
+
+## Current app status
 
 ModaAI is a Vite + React + TypeScript client demo for the AI Fashion production workspace.
 
-## Current status
+This mirror still deploys the static web app through GitHub Pages from `main`.
 
-This repository is the web application only. The working Telegram bot/backend code lives in a separate repository:
+The working backend/runtime/control-plane lives in the monorepo:
 
 ```text
 /home/roman/projects/ai-fashion-content-generation-telegram-bot
@@ -41,7 +69,7 @@ Covered demo flow:
 8. lifecycle advances automatically: `queued → processing → quality_check → archive_preparing → ready`;
 9. ready confirms spend and releases reserve.
 
-`VITE_API_MODE=http` is reserved for a future backend adapter and currently fails fast instead of inventing endpoints.
+`VITE_API_MODE=http` is reserved for backend adapter work and should not invent endpoints.
 
 ## Run locally
 
@@ -72,17 +100,3 @@ VITE_API_BASE_URL="http://localhost:8080"
 ```
 
 Do not commit real API keys, bot tokens, billing credentials, marketplace credentials, or wallet secrets.
-
-## Live backend integration notes
-
-The existing backend repo already has Telegram bot handlers, D1/B1/C1 generation pipelines, storage, provider abstractions, and a read-only Mini App API for generation history.
-
-The web app still needs a backend adapter for:
-
-- demo/session or Telegram WebApp session bridge;
-- model/wardrobe/look storage APIs or mapping to existing backend entities;
-- production launch endpoint using existing pipeline orchestration;
-- credits/ledger ownership semantics;
-- result status/history mapping to `src/api/contracts.ts`.
-
-Until that adapter exists, keep `VITE_API_MODE=demo` for client demos.
